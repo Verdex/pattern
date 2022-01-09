@@ -1,26 +1,28 @@
 
-use std::rc::Rc;
+use std::str::CharIndices;
+use std::iter::Peekable; 
 
-pub struct Input {
-    characters : Rc<Vec<char>>,
-    index : usize,
+#[derive(Clone)]
+pub struct Input<'a> {
+    cs : Peekable<CharIndices<'a>>
 }
 
-impl Input {
-    fn new(s : &str) -> Input {
-        let characters = Rc::new(s.chars().collect::<Vec<char>>());
-        Input { characters, index: 0 }
+impl<'a> Input<'a> {
+    pub fn new(s : &str) -> Input {
+        Input { cs: s.char_indices().peekable() }
     }
 
-    fn current(&self) -> char {
-        self.characters[self.index]
+    fn next(&mut self) -> Option<char> {
+        match self.cs.next() {
+            Some((_, c)) => Some(c),
+            None => None,
+        }
     }
 
-    fn next(&self) -> Self { 
-        Input { characters: self.characters.clone(), index: self.index + 1 }
-    }
-
-    fn end(&self) -> bool {
-        self.index <= self.characters.len()
+    fn peek(&mut self) -> Option<&char> {
+        match self.cs.peek() {
+            Some((_, c)) => Some(c),
+            None => None,
+        }
     }
 }
