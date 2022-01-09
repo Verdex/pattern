@@ -7,22 +7,27 @@ pub struct Input<'a> {
     cs : Peekable<CharIndices<'a>>
 }
 
+pub enum ParseError {
+    Error,
+    Fatal(String),
+}
+
 impl<'a> Input<'a> {
     pub fn new(s : &str) -> Input {
         Input { cs: s.char_indices().peekable() }
     }
 
-    fn next(&mut self) -> Option<char> {
+    pub fn next(&mut self) -> Result<char, ParseError> {
         match self.cs.next() {
-            Some((_, c)) => Some(c),
-            None => None,
+            Some((_, c)) => Ok(c),
+            None => Err(ParseError::Error),
         }
     }
 
-    fn peek(&mut self) -> Option<&char> {
+    pub fn peek(&mut self) -> Result<char, ParseError> {
         match self.cs.peek() {
-            Some((_, c)) => Some(c),
-            None => None,
+            Some((_, c)) => Ok(*c),
+            None => Err(ParseError::Error),
         }
     }
 }
