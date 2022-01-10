@@ -7,6 +7,7 @@ pub struct Input<'a> {
     cs : Peekable<CharIndices<'a>>
 }
 
+#[derive(Debug)]
 pub enum ParseError {
     Error,
     Fatal(String),

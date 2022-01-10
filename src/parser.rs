@@ -43,7 +43,30 @@ fn parse_symbol(input : &mut Input) -> Result<String, ParseError> {
             _ => return Ok(cs.into_iter().collect::<String>()),
         }
     }
+}
 
+fn parse_number(input : &mut Input) -> Result<Ast, ParseError> {
+    parse_junk(input)?;
+
+    let mut cs = vec![];
+    let mut negative = false;
+
+    match input.peek() {
+        Ok(c) if c.is_ascii_digit() => { cs.push(c); input.next(); },
+        Ok(c) if c == '-' => { negative = true; input.next(); },
+        Err(e @ ParseError::Fatal(_)) => return Err(e),
+        _ => return Err(ParseError::Error),
+    }
+
+    loop {
+        match input.peek() {
+            Ok(c) if c.is_ascii_digit() => { cs.push(c); input.next(); },
+            Err(e @ ParseError::Fatal(_)) => return Err(e),
+            _ if cs.len() < 1 => return Err(ParseError::Fatal("encountered single '-'".to_string())),
+            _ if negative => return Ok(Ast::Number(cs.into_iter().collect::<String>().parse::<i64>().expect("Internal Rust Parse Error") * -1)),
+            _ => return Ok(Ast::Number(cs.into_iter().collect::<String>().parse::<i64>().expect("Internal Rust Parse Error"))),
+        }
+    }
 }
 
 fn parse_literal(input : &mut Input) -> Result<(), ParseError> {
@@ -52,4 +75,31 @@ fn parse_literal(input : &mut Input) -> Result<(), ParseError> {
 
 fn parse_expr(input : &mut Input) -> Result<(), ParseError> {
     Err(ParseError::Fatal("Problem".to_string()))
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    use std::num::ParseIntError;
+
+    #[test] 
+    fn should_parse_positive_int() -> Result<(), ParseError> {
+        let mut input = Input::new("1234");
+        let result = parse_number(&mut input)?;
+
+        assert!( matches!( result, Ast::Number(1234) ) );
+
+        Ok(())
+    }
+
+    #[test] 
+    fn should_parse_negative_int() -> Result<(), ParseError> {
+        let mut input = Input::new("-1234");
+        let result = parse_number(&mut input)?;
+
+        assert!( matches!( result, Ast::Number(-1234) ) );
+
+        Ok(())
+    }
 }
