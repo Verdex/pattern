@@ -22,7 +22,26 @@ fn parse_junk(input : &mut Input) -> Result<(), ParseError> {
             (_, Err(ParseError::Error)) => return Ok(()),
             (_, Err(e @ ParseError::Fatal(_))) => return Err(e),
         }
+    }
+}
 
+fn parse_symbol(input : &mut Input) -> Result<String, ParseError> {
+    parse_junk(input)?;
+
+    let mut cs = vec![];
+
+    match input.peek() {
+        Ok(c) if c.is_alphabetic() || c == '_' => { cs.push(c); input.next(); },
+        Err(e @ ParseError::Fatal(_)) => return Err(e),
+        _ => return Err(ParseError::Error),
+    }
+
+    loop {
+        match input.peek() {
+            Ok(c) if c.is_alphanumeric() || c == '_' => { cs.push(c); input.next(); },
+            Err(e @ ParseError::Fatal(_)) => return Err(e),
+            _ => return Ok(cs.into_iter().collect::<String>()),
+        }
     }
 
 }
