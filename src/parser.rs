@@ -102,4 +102,34 @@ mod test {
 
         Ok(())
     }
+
+    #[test]
+    fn should_parse_single_underscore_symbol() -> Result<(), ParseError> {
+        let mut input = Input::new("_");
+        let result = parse_symbol(&mut input)?;
+
+        assert_eq!( result, "_" );
+
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_single_character_symbol() -> Result<(), ParseError> {
+        let mut input = Input::new("a");
+        let result = parse_symbol(&mut input)?;
+
+        assert_eq!( result, "a" );
+
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_symbol() -> Result<(), ParseError> {
+        let mut input = Input::new("blah_1234");
+        let result = parse_symbol(&mut input)?;
+
+        assert_eq!( result, "blah_1234" );
+
+        Ok(())
+    }
 }
