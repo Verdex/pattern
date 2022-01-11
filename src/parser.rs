@@ -69,11 +69,41 @@ fn parse_number(input : &mut Input) -> Result<Expr, ParseError> {
     }
 }
 
+// TODO bool
+
 fn parse_expr(input : &mut Input) -> Result<(), ParseError> {
+    /* TODO :
+            1234
+            -1234
+            true
+            false
+            variable
+            fun () = e
+            fun (x, y, z) = e
+            fun (x : T, y : T, z : T) -> T = e
+            let x = y in z
+            let x : T = y in z
+            [e, e, e]
+            {p, p, p}
+            <p, p, p>
+            match e {
+                p => e,
+                p => e,
+                p => e,
+            }
+            x(y, z)
+            y.x(z)
+
+    */
     Err(ParseError::Fatal("Problem".to_string()))
 }
 
 fn parse_top_level(input : &mut Input) -> Result<(), ParseError> {
+    /* TODO :
+             data X = A | B(C, D) ;
+             data X<A, B, C> = A | B| C ;
+             def x(a : T, b : T, c : T) -> T = e ;
+    */
     Err(ParseError::Fatal("TODO".to_string()))
 }
 
