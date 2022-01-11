@@ -69,10 +69,6 @@ fn parse_number(input : &mut Input) -> Result<Expr, ParseError> {
     }
 }
 
-fn parse_literal(input : &mut Input) -> Result<(), ParseError> {
-    Err(ParseError::Fatal("Problem".to_string()))
-}
-
 fn parse_expr(input : &mut Input) -> Result<(), ParseError> {
     Err(ParseError::Fatal("Problem".to_string()))
 }
@@ -84,8 +80,6 @@ fn parse_top_level(input : &mut Input) -> Result<(), ParseError> {
 #[cfg(test)]
 mod test {
     use super::*;
-
-    use std::num::ParseIntError;
 
     #[test] 
     fn should_parse_positive_int() -> Result<(), ParseError> {
