@@ -88,17 +88,56 @@ fn parse_bool(input : &mut Input) -> Result<Expr, ParseError> {
 }
 
 fn parse_standard_pattern(input : &mut Input) -> Result<StandardPattern, ParseError> {
-
+    /* TODO: 
+           number
+           variable
+           p | p
+           Cons(p*)
+           x @ p
+           p if bool-expr
+           _
+           []
+           [p, p, p]
+           [p | p] (tail)
+    */
     Err(ParseError::Fatal("TODO".to_string()))
 }
 
 fn parse_array_pattern(input : &mut Input) -> Result<ArrayPattern, ParseError> {
-
+    /* TODO: 
+           number
+           variable
+           Cons(p*)
+           x @ p
+           p if bool-expr
+           _{number-expr}
+           _* 
+           _
+           []
+           [p, p, p]
+           [p | p] (tail)
+           p; p; p
+    */
     Err(ParseError::Fatal("TODO".to_string()))
 }
 
 fn parse_path_pattern(input : &mut Input) -> Result<PathPattern, ParseError> {
-
+    /* TODO: 
+           number
+           variable
+           Cons(p*)
+           x @ p
+           p if bool-expr
+           !
+           !N
+           &path_pattern_symbol_name:output_symbol
+           !&path_pattern_symbol_name:output_symbol
+           !N&path_pattern_symbol_name:output_symbol
+           []
+           [p, p, p]
+           [p | p] (tail)
+           p; p; p
+    */
     Err(ParseError::Fatal("TODO".to_string()))
 }
 

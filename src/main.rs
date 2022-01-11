@@ -21,9 +21,7 @@ mod parser;
     and(bool, bool)
     or(bool, bool)
     xor(bool, bool)
-    match(pattern, array_expr)
     match_all(pattern, array_expr)
-    parse(pattern, array_expr)
     parse_all(pattern, array_expr)
     path(pattern, e)
     fold(fun(a, b) -> b, [a]) -> b
