@@ -72,7 +72,14 @@ fn parse_number(input : &mut Input) -> Result<Expr, ParseError> {
 fn parse_bool(input : &mut Input) -> Result<Expr, ParseError> {
     parse_junk(input)?;
 
-    Err(ParseError::Fatal("TODO".to_string()))
+    let rp = input.clone();
+
+    match parse_symbol(input) {
+        Ok(sym) if sym == "true" => Ok(Expr::Bool(true)),
+        Ok(sym) if sym == "false" => Ok(Expr::Bool(false)),
+        Err(e @ ParseError::Fatal(_)) => Err(e),
+        _ => { input.restore(rp); Err(ParseError::Error)},
+    }
 }
 
 fn parse_expr(input : &mut Input) -> Result<(), ParseError> {
@@ -164,4 +171,39 @@ mod test {
 
         Ok(())
     }
+
+    #[test]
+    fn should_parse_true() -> Result<(), ParseError> {
+        let mut input = Input::new("true");
+        let result = parse_bool(&mut input)?;
+
+        assert!( matches!( result, Expr::Bool(true) ) );
+
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_false() -> Result<(), ParseError> {
+        let mut input = Input::new("false");
+        let result = parse_bool(&mut input)?;
+
+        assert!( matches!( result, Expr::Bool(false) ) );
+
+        Ok(())
+    }
+
+    #[test]
+    fn should_not_consume_non_bool() -> Result<(), ParseError> {
+        let mut input = Input::new("false_");
+        let result = parse_bool(&mut input);
+
+        assert!( matches!( result, Err(_) ) );
+
+        let result = parse_symbol(&mut input)?;
+
+        assert_eq!( result, "false_" );
+
+        Ok(())
+    }
+
 }
