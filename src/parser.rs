@@ -1,6 +1,6 @@
 
 use crate::input::{Input, ParseError};
-use crate::ast::Ast;
+use crate::ast::{Expr, Ast};
 
 pub fn parse(input : Input) -> Result<Ast, ParseError> {
     Err(ParseError::Fatal("Problem".to_string()))
@@ -45,7 +45,7 @@ fn parse_symbol(input : &mut Input) -> Result<String, ParseError> {
     }
 }
 
-fn parse_number(input : &mut Input) -> Result<Ast, ParseError> {
+fn parse_number(input : &mut Input) -> Result<Expr, ParseError> {
     parse_junk(input)?;
 
     let mut cs = vec![];
@@ -63,8 +63,8 @@ fn parse_number(input : &mut Input) -> Result<Ast, ParseError> {
             Ok(c) if c.is_ascii_digit() => { cs.push(c); input.next(); },
             Err(e @ ParseError::Fatal(_)) => return Err(e),
             _ if cs.len() < 1 => return Err(ParseError::Fatal("encountered single '-'".to_string())),
-            _ if negative => return Ok(Ast::Number(cs.into_iter().collect::<String>().parse::<i64>().expect("Internal Rust Parse Error") * -1)),
-            _ => return Ok(Ast::Number(cs.into_iter().collect::<String>().parse::<i64>().expect("Internal Rust Parse Error"))),
+            _ if negative => return Ok(Expr::Number(cs.into_iter().collect::<String>().parse::<i64>().expect("Internal Rust Parse Error") * -1)),
+            _ => return Ok(Expr::Number(cs.into_iter().collect::<String>().parse::<i64>().expect("Internal Rust Parse Error"))),
         }
     }
 }
@@ -75,6 +75,10 @@ fn parse_literal(input : &mut Input) -> Result<(), ParseError> {
 
 fn parse_expr(input : &mut Input) -> Result<(), ParseError> {
     Err(ParseError::Fatal("Problem".to_string()))
+}
+
+fn parse_top_level(input : &mut Input) -> Result<(), ParseError> {
+    Err(ParseError::Fatal("TODO".to_string()))
 }
 
 #[cfg(test)]
@@ -88,7 +92,7 @@ mod test {
         let mut input = Input::new("1234");
         let result = parse_number(&mut input)?;
 
-        assert!( matches!( result, Ast::Number(1234) ) );
+        assert!( matches!( result, Expr::Number(1234) ) );
 
         Ok(())
     }
@@ -98,7 +102,7 @@ mod test {
         let mut input = Input::new("-1234");
         let result = parse_number(&mut input)?;
 
-        assert!( matches!( result, Ast::Number(-1234) ) );
+        assert!( matches!( result, Expr::Number(-1234) ) );
 
         Ok(())
     }
