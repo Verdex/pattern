@@ -69,7 +69,11 @@ fn parse_number(input : &mut Input) -> Result<Expr, ParseError> {
     }
 }
 
-// TODO bool
+fn parse_bool(input : &mut Input) -> Result<Expr, ParseError> {
+    parse_junk(input)?;
+
+    Err(ParseError::Fatal("TODO".to_string()))
+}
 
 fn parse_expr(input : &mut Input) -> Result<(), ParseError> {
     /* TODO :

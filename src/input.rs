@@ -18,6 +18,10 @@ impl<'a> Input<'a> {
         Input { cs: s.char_indices().peekable() }
     }
 
+    pub fn restore(&mut self, r : Input<'a>) {
+        self.cs = r.cs;
+    }
+
     pub fn next(&mut self) -> Result<char, ParseError> {
         match self.cs.next() {
             Some((_, c)) => Ok(c),
