@@ -84,10 +84,10 @@ fn parse_bool(input : &mut Input) -> Result<Expr, ParseError> {
 
 fn parse_expr(input : &mut Input) -> Result<(), ParseError> {
     /* TODO :
-            1234
-            -1234
-            true
-            false
+            * 1234  
+            * -1234 
+            * true  
+            * false 
             variable
             fun () = e
             fun (x, y, z) = e
@@ -107,6 +107,22 @@ fn parse_expr(input : &mut Input) -> Result<(), ParseError> {
 
     */
     Err(ParseError::Fatal("Problem".to_string()))
+}
+
+fn parse_type(input : &mut Input) -> Result<(), ParseError> {
+    /* TODO :
+            fun (T, T, T) -> T
+            [T]
+            T<T>
+
+            concrete types are upper case
+            generic types are lower case
+            anon types exist but are not parsable (atm)
+            path_pattern<anon>
+            array_pattern<anon>
+    */
+
+    Err(ParseError::Fatal("TODO".to_string()))
 }
 
 fn parse_top_level(input : &mut Input) -> Result<(), ParseError> {
