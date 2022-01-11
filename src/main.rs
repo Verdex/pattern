@@ -6,7 +6,16 @@ mod parser;
 /* TODO buildin functions:
 
     print(e)
-    equal(e, e)
+    eq(e, e)
+    lt(number, number)
+    gt(number, number)
+    lte(n, n)
+    gte(n, n)
+    add(n, n)
+    sub(n, n)
+    div(n, n)
+    rem(n, n)
+    mul(n, n)
     match(pattern, array_expr)
     match_all(pattern, array_expr)
     parse(pattern, array_expr)
