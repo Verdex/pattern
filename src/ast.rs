@@ -9,3 +9,18 @@ pub enum Expr {
     Number(i64),
     Bool(bool),
 }
+
+#[derive(Debug)]
+pub enum StandardPattern {
+
+}
+
+#[derive(Debug)]
+pub enum ArrayPattern {
+
+}
+
+#[derive(Debug)]
+pub enum PathPattern {
+
+}

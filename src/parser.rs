@@ -1,6 +1,11 @@
 
 use crate::input::{Input, ParseError};
-use crate::ast::{Expr, Ast};
+use crate::ast::{ StandardPattern
+                , ArrayPattern
+                , PathPattern
+                , Expr
+                , Ast
+                };
 
 pub fn parse(input : Input) -> Result<Ast, ParseError> {
     Err(ParseError::Fatal("Problem".to_string()))
@@ -80,6 +85,21 @@ fn parse_bool(input : &mut Input) -> Result<Expr, ParseError> {
         Err(e @ ParseError::Fatal(_)) => Err(e),
         _ => { input.restore(rp); Err(ParseError::Error)},
     }
+}
+
+fn parse_standard_pattern(input : &mut Input) -> Result<StandardPattern, ParseError> {
+
+    Err(ParseError::Fatal("TODO".to_string()))
+}
+
+fn parse_array_pattern(input : &mut Input) -> Result<ArrayPattern, ParseError> {
+
+    Err(ParseError::Fatal("TODO".to_string()))
+}
+
+fn parse_path_pattern(input : &mut Input) -> Result<PathPattern, ParseError> {
+
+    Err(ParseError::Fatal("TODO".to_string()))
 }
 
 fn parse_expr(input : &mut Input) -> Result<(), ParseError> {

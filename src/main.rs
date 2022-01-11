@@ -6,6 +6,7 @@ mod parser;
 /* TODO buildin functions:
 
     print(e)
+    input() -> [number]
     eq(e, e)
     lt(number, number)
     gt(number, number)
