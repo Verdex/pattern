@@ -1,6 +1,11 @@
 
 use super::input::{Input, ParseError};
-use super::util::{into};
+use super::util::{ into
+                 , parse_junk
+                 , parse_symbol
+                 , parse_number
+                 , parse_bool
+                 };
 use crate::ast::{ StandardPattern
                 , ArrayPattern
                 , PathPattern
@@ -11,82 +16,6 @@ use crate::ast::{ StandardPattern
 pub fn parse(input : &str) -> Result<Ast, ParseError> {
     let _input = Input::new(input);
     Err(ParseError::Fatal("Problem".to_string()))
-}
-
-fn parse_junk(input : &mut Input) -> Result<(), ParseError> {
-
-    let mut comment = false;
-
-    loop {
-
-        match (comment, input.peek()) {
-            (true, Ok('\n')) => { comment = false; input.next().unwrap(); }
-            (true, Ok('\r')) => { comment = false; input.next().unwrap(); }
-            (true, Ok(_)) => { input.next().unwrap(); }
-            (false, Ok(c)) if c.is_whitespace() => { input.next().unwrap(); },
-            (false, Ok('#')) => { comment = true; input.next().unwrap(); },
-            (false, Ok(_)) => return Ok(()), 
-            (_, Err(ParseError::Error)) => return Ok(()),
-            (_, Err(e @ ParseError::Fatal(_))) => return Err(e),
-        }
-    }
-}
-
-fn parse_symbol(input : &mut Input) -> Result<String, ParseError> {
-    parse_junk(input)?;
-
-    let mut cs = vec![];
-
-    match input.peek() {
-        Ok(c) if c.is_alphabetic() || c == '_' => { cs.push(c); input.next().unwrap(); },
-        Err(e @ ParseError::Fatal(_)) => return Err(e),
-        _ => return Err(ParseError::Error),
-    }
-
-    loop {
-        match input.peek() {
-            Ok(c) if c.is_alphanumeric() || c == '_' => { cs.push(c); input.next().unwrap(); },
-            Err(e @ ParseError::Fatal(_)) => return Err(e),
-            _ => return Ok(cs.into_iter().collect::<String>()),
-        }
-    }
-}
-
-fn parse_number(input : &mut Input) -> Result<i64, ParseError> {
-    parse_junk(input)?;
-
-    let mut cs = vec![];
-    let mut negative = false;
-
-    match input.peek() {
-        Ok(c) if c.is_ascii_digit() => { cs.push(c); input.next().unwrap(); },
-        Ok(c) if c == '-' => { negative = true; input.next().unwrap(); },
-        Err(e @ ParseError::Fatal(_)) => return Err(e),
-        _ => return Err(ParseError::Error),
-    }
-
-    loop {
-        match input.peek() {
-            Ok(c) if c.is_ascii_digit() => { cs.push(c); input.next().unwrap(); },
-            Err(e @ ParseError::Fatal(_)) => return Err(e),
-            _ if cs.len() < 1 => return Err(ParseError::Fatal("encountered single '-'".to_string())),
-            _ if negative => return Ok(cs.into_iter().collect::<String>().parse::<i64>().expect("Internal Rust Parse Error") * -1),
-            _ => return Ok(cs.into_iter().collect::<String>().parse::<i64>().expect("Internal Rust Parse Error")),
-        }
-    }
-}
-
-fn parse_bool(input : &mut Input) -> Result<bool, ParseError> {
-    parse_junk(input)?;
-
-    let rp = input.clone();
-
-    match parse_symbol(input) {
-        Ok(sym) if sym == "true" => Ok(true),
-        Ok(sym) if sym == "false" => Ok(false),
-        Err(e @ ParseError::Fatal(_)) => Err(e),
-        _ => { input.restore(rp); Err(ParseError::Error)},
-    }
 }
 
 fn parse_let(input : &mut Input) -> Result<Expr, ParseError> {
@@ -249,87 +178,4 @@ fn parse_top_level(input : &mut Input) -> Result<(), ParseError> {
 mod test {
     use super::*;
 
-    #[test] 
-    fn should_parse_positive_int() -> Result<(), ParseError> {
-        let mut input = Input::new("1234");
-        let result = parse_number(&mut input)?;
-
-        assert_eq!( result, 1234 );
-
-        Ok(())
-    }
-
-    #[test] 
-    fn should_parse_negative_int() -> Result<(), ParseError> {
-        let mut input = Input::new("-1234");
-        let result = parse_number(&mut input)?;
-
-        assert_eq!( result, -1234 );
-
-        Ok(())
-    }
-
-    #[test]
-    fn should_parse_single_underscore_symbol() -> Result<(), ParseError> {
-        let mut input = Input::new("_");
-        let result = parse_symbol(&mut input)?;
-
-        assert_eq!( result, "_" );
-
-        Ok(())
-    }
-
-    #[test]
-    fn should_parse_single_character_symbol() -> Result<(), ParseError> {
-        let mut input = Input::new("a");
-        let result = parse_symbol(&mut input)?;
-
-        assert_eq!( result, "a" );
-
-        Ok(())
-    }
-
-    #[test]
-    fn should_parse_symbol() -> Result<(), ParseError> {
-        let mut input = Input::new("blah_1234");
-        let result = parse_symbol(&mut input)?;
-
-        assert_eq!( result, "blah_1234" );
-
-        Ok(())
-    }
-
-    #[test]
-    fn should_parse_true() -> Result<(), ParseError> {
-        let mut input = Input::new("true");
-        let result = parse_bool(&mut input)?;
-
-        assert_eq!( result, true );
-
-        Ok(())
-    }
-
-    #[test]
-    fn should_parse_false() -> Result<(), ParseError> {
-        let mut input = Input::new("false");
-        let result = parse_bool(&mut input)?;
-
-        assert_eq!( result, false );
-
-        Ok(())
-    }
-
-    #[test]
-    fn should_not_consume_non_bool() -> Result<(), ParseError> {
-        let mut input = Input::new("false_");
-        let result = parse_bool(&mut input);
-
-        assert!( matches!( result, Err(_) ) );
-
-        let result = parse_symbol(&mut input)?;
-
-        assert_eq!( result, "false_" );
-
-        Ok(())
-    }
 }
