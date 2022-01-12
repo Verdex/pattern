@@ -92,7 +92,7 @@ pub fn keyword(input : &mut Input, value : &str) -> Result<(), ParseError> {
     for c in value.chars() {
         match input.next() {
             Ok(v) if c == v => { },
-            Ok(v) => { input.restore(rp); return Err(ParseError::Error); },
+            Ok(_) => { input.restore(rp); return Err(ParseError::Error); },
             Err(ParseError::Error) => { input.restore(rp); return Err(ParseError::Error); }, 
             Err(e @ ParseError::Fatal(_)) => return Err(e),
         }
@@ -100,7 +100,7 @@ pub fn keyword(input : &mut Input, value : &str) -> Result<(), ParseError> {
 
     match input.next() {
         Ok(v) if v.is_whitespace() => Ok(()),
-        Ok(v) => { input.restore(rp); Err(ParseError::Error) },
+        Ok(_) => { input.restore(rp); Err(ParseError::Error) },
         Err(ParseError::Error) => Ok(()),
         Err(e @ ParseError::Fatal(_)) => Err(e),
     }

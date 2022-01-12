@@ -5,6 +5,7 @@ use super::util::{ into
                  , parse_symbol
                  , parse_number
                  , parse_bool
+                 , keyword
                  };
 use crate::ast::{ StandardPattern
                 , ArrayPattern
@@ -20,6 +21,8 @@ pub fn parse(input : &str) -> Result<Ast, ParseError> {
 
 fn parse_let(input : &mut Input) -> Result<Expr, ParseError> {
     parse_junk(input)?;
+
+    keyword(input, "let")?;
 
     Err(ParseError::Fatal("TODO".to_string()))
 }
