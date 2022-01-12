@@ -23,6 +23,8 @@ fn parse_let(input : &mut Input) -> Result<Expr, ParseError> {
     parse_junk(input)?;
 
     keyword(input, "let")?;
+    
+    // TODO everything after the let keyword is a fatal error
 
     Err(ParseError::Fatal("TODO".to_string()))
 }
