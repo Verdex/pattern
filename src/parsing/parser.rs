@@ -87,6 +87,12 @@ fn parse_bool(input : &mut Input) -> Result<bool, ParseError> {
     }
 }
 
+fn parse_let(input : &mut Input) -> Result<Expr, ParseError> {
+    parse_junk(input)?;
+
+    Err(ParseError::Fatal("TODO".to_string()))
+}
+
 fn parse_standard_pattern(input : &mut Input) -> Result<StandardPattern, ParseError> {
     /* TODO: 
            number

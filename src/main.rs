@@ -1,7 +1,7 @@
 
 mod input;
 mod ast;
-mod parser;
+mod parsing;
 
 /* TODO buildin functions:
 
