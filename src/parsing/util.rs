@@ -106,6 +106,10 @@ pub fn keyword(input : &mut Input, value : &str) -> Result<(), ParseError> {
     }
 }
 
+pub fn puct(input : &mut Input, value : &str) -> Result<(), ParseError> {
+    Err(ParseError::Fatal("TODO".to_string()))
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
