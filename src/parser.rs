@@ -151,8 +151,27 @@ fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
         into(input, parse_number, |n| Expr::Number(n))
     }
 
+    fn parse_variable_expr(input : &mut Input) -> Result<Expr, ParseError> {
+        let rp = input.clone();
+
+        let sym = parse_symbol(input)?;
+
+        let first = sym.chars().nth(0)
+            .expect("parse_expr::parse_variable_expr parse_symbol somehow returned zero length string");
+
+        if first.is_lowercase() {
+            Ok(Expr::Variable(sym))
+        }
+        else {
+            input.restore(rp);
+            Err(ParseError::Error)
+        }
+    }
+
     let ps = [ parse_bool_expr
              , parse_number_expr
+
+             , parse_variable_expr // This should probably be last to avoid eating up keywords, etc
              ];
 
     let mut expr = None;
@@ -173,7 +192,6 @@ fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
     // TODO:  Will need to figure out how to do after expressions (like . and ())
 
     /* TODO :
-            variable
             fun () = e
             fun (x, y, z) = e
             fun (x : T, y : T, z : T) -> T = e
