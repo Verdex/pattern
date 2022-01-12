@@ -1,5 +1,5 @@
 
-use crate::input::{Input, ParseError};
+use super::input::{Input, ParseError};
 use crate::ast::{ StandardPattern
                 , ArrayPattern
                 , PathPattern
