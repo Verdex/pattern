@@ -8,6 +8,7 @@ pub enum Ast {
 pub enum Expr {
     Number(i64),
     Bool(bool),
+    Variable(String),
 }
 
 #[derive(Debug)]
