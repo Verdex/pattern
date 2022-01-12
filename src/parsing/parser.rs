@@ -6,6 +6,7 @@ use super::util::{ into
                  , parse_number
                  , parse_bool
                  , keyword
+                 , fatal
                  };
 use crate::ast::{ StandardPattern
                 , ArrayPattern
@@ -25,6 +26,8 @@ fn parse_let(input : &mut Input) -> Result<Expr, ParseError> {
     keyword(input, "let")?;
     
     // TODO everything after the let keyword is a fatal error
+
+    //fatal(blah)?
 
     Err(ParseError::Fatal("TODO".to_string()))
 }

@@ -110,6 +110,13 @@ pub fn puct(input : &mut Input, value : &str) -> Result<(), ParseError> {
     Err(ParseError::Fatal("TODO".to_string()))
 }
 
+pub fn fatal<T>(x : Result<T, ParseError>, message : &str) -> Result<T, ParseError> {
+    match x {
+        o @ Ok(_) => o,
+        _ => Err(ParseError::Fatal(message.to_string())), // TODO refactor Fatal to build up a stack trace
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
