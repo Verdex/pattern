@@ -1,5 +1,6 @@
 
 use super::input::{Input, ParseError};
+use super::util::{into};
 use crate::ast::{ StandardPattern
                 , ArrayPattern
                 , PathPattern
@@ -242,13 +243,6 @@ fn parse_top_level(input : &mut Input) -> Result<(), ParseError> {
              fun x(a : T, b : T, c : T) -> T = e ;
     */
     Err(ParseError::Fatal("TODO".to_string()))
-}
-
-fn into<T, A>(input : &mut Input, p : fn(&mut Input) -> Result<T, ParseError>, map : fn(T) -> A) -> Result<A, ParseError> {
-    match p(input) {
-        Ok(v) => Ok(map(v)),
-        Err(x) => Err(x),
-    }
 }
 
 #[cfg(test)]
