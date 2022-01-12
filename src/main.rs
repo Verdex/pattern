@@ -34,5 +34,7 @@ mod parsing;
 
 */
 fn main() {
-    println!("Hello, world!");
+    use parsing::parser;
+
+    let _x = parser::parse("input");
 }
