@@ -192,9 +192,9 @@ fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
     // TODO:  Will need to figure out how to do after expressions (like . and ())
 
     /* TODO :
-            fun () = e
-            fun (x, y, z) = e
-            fun (x : T, y : T, z : T) -> T = e
+            || e
+            |x, y, z| e
+            |x : T, y : T, z : T| -> T  e
             let x = y in z
             let x : T = y in z
             [e, e, e]
@@ -232,7 +232,7 @@ fn parse_top_level(input : &mut Input) -> Result<(), ParseError> {
     /* TODO :
              data X = A | B(C, D) ;
              data X<A, B, C> = A | B| C ;
-             def x(a : T, b : T, c : T) -> T = e ;
+             fun x(a : T, b : T, c : T) -> T = e ;
     */
     Err(ParseError::Fatal("TODO".to_string()))
 }
