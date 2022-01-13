@@ -14,7 +14,11 @@ pub enum Expr {
 
 #[derive(Debug)]
 pub enum Type {
-
+    Generic(String),
+    Concrete(String),
+    Array(Box<Type>),
+    Fun { input : Vec<Type>, output : Box<Type> },
+    Index { t : String, params : Vec<Type> },
 }
 
 #[derive(Debug)]
