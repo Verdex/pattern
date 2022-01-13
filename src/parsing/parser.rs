@@ -29,12 +29,30 @@ pub fn parse(input : &str) -> Result<Ast, ParseError> {
 }
 
 fn parse_let(input : &mut Input) -> Result<Expr, ParseError> {
+    fn colon_and_type(input : &mut Input) -> Result<Type, ParseError> {
+        parse_junk(input)?;
+        punct(input, ":")?;
+        parse_junk(input)?;
+        parse_type(input)
+    }
+
     parse_junk(input)?;
 
     keyword(input, "let")?;
     
+    let name = fatal(parse_symbol(input), "let must have name")?;
 
-    Err(ParseError::Fatal("TODO".to_string()))
+    let t = maybe(colon_and_type(input))?;
+
+    punct(input, "=")?;
+
+    let value = Box::new(parse_expr(input)?);
+
+    keyword(input, "in")?;
+
+    let expr = Box::new(parse_expr(input)?);
+
+    Ok(Expr::Let{name, t, value, expr})
 }
 
 fn parse_standard_pattern(_input : &mut Input) -> Result<StandardPattern, ParseError> {
