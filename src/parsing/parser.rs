@@ -10,6 +10,7 @@ use super::util::{ into
                  , maybe
                  , fatal
                  };
+use super::type_parser::parse_type;
 use crate::ast::{ StandardPattern
                 , ArrayPattern
                 , PathPattern
@@ -179,22 +180,6 @@ fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
             y.x(z)
 
     */
-}
-
-fn parse_type(_input : &mut Input) -> Result<Type, ParseError> {
-    /* TODO :
-            fun (T, T, T) -> T
-            [T]
-            T<T>
-
-            concrete types are upper case
-            generic types are lower case
-            anon types exist but are not parsable (atm)
-            path_pattern<anon>
-            array_pattern<anon>
-    */
-
-    Err(ParseError::Fatal("TODO".to_string()))
 }
 
 fn parse_fun_def(input : &mut Input) -> Result<Ast, ParseError> {
