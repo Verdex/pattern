@@ -31,6 +31,9 @@ mod parsing;
     range(number, number) -> [number]
 
     
+    anon types exist but are not parsable (atm)
+    path_pattern<anon>
+    array_pattern<anon>
 
 */
 fn main() {
