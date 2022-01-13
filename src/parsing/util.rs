@@ -123,6 +123,14 @@ pub fn punct(input : &mut Input, value : &str) -> Result<(), ParseError> {
     Ok(())
 }
 
+pub fn maybe<T>( x : Result<T, ParseError> ) -> Result<Option<T>, ParseError> {
+    match x { 
+        Ok(v) => Ok(Some(v)),
+        Err(ParseError::Error) => Ok(None),
+        Err(e @ ParseError::Fatal(_)) => Err(e),
+    }
+}
+
 pub fn fatal<T>(x : Result<T, ParseError>, message : &str) -> Result<T, ParseError> {
     match x {
         o @ Ok(_) => o,
