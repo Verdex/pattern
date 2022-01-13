@@ -249,4 +249,12 @@ fn parse_top_level(input : &mut Input) -> Result<Ast, ParseError> {
 mod test {
     use super::*;
 
+    #[test]
+    fn let_should_parse_let() -> Result<(), ParseError> {
+        let mut input = Input::new("let x = 5 in x");
+        let result = parse_let(&mut input)?;
+        // TODO this test can be more comprehensive 
+        Ok(())
+    }
+
 }
