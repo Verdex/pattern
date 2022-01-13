@@ -106,8 +106,21 @@ pub fn keyword(input : &mut Input, value : &str) -> Result<(), ParseError> {
     }
 }
 
-pub fn puct(input : &mut Input, value : &str) -> Result<(), ParseError> {
-    Err(ParseError::Fatal("TODO".to_string()))
+pub fn punct(input : &mut Input, value : &str) -> Result<(), ParseError> {
+    parse_junk(input)?;
+
+    let rp = input.clone();
+
+    for c in value.chars() {
+        match input.next() {
+            Ok(v) if c == v => { },
+            Ok(_) => { input.restore(rp); return Err(ParseError::Error); },
+            Err(ParseError::Error) => { input.restore(rp); return Err(ParseError::Error); }, 
+            Err(e @ ParseError::Fatal(_)) => return Err(e),
+        }
+    }
+
+    Ok(())
 }
 
 pub fn fatal<T>(x : Result<T, ParseError>, message : &str) -> Result<T, ParseError> {
