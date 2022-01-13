@@ -138,6 +138,7 @@ fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
 
     let ps = [ parse_bool_expr
              , parse_number_expr
+             , parse_let
 
              , parse_variable_expr // This should probably be last to avoid eating up keywords, etc
              ];
