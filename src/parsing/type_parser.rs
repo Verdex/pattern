@@ -94,3 +94,9 @@ pub fn parse_type(input : &mut Input) -> Result<Type, ParseError> {
 
     */
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+}
