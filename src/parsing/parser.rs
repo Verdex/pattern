@@ -165,8 +165,6 @@ fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
             || e
             |x, y, z| e
             |x : T, y : T, z : T| -> T  e
-            let x = y in z
-            let x : T = y in z
             [e, e, e]
             {p, p, p}
             <p, p, p>
