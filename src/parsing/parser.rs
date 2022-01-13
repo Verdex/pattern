@@ -44,13 +44,13 @@ fn parse_let(input : &mut Input) -> Result<Expr, ParseError> {
 
     let t = maybe(colon_and_type(input))?;
 
-    punct(input, "=")?;
+    fatal(punct(input, "="), "let must have '='")?;
 
-    let value = Box::new(parse_expr(input)?);
+    let value = Box::new(fatal(parse_expr(input), "let must have value")?);
 
-    keyword(input, "in")?;
+    fatal(keyword(input, "in"), "let must have 'in'")?;
 
-    let expr = Box::new(parse_expr(input)?);
+    let expr = Box::new(fatal(parse_expr(input), "let must have expr")?);
 
     Ok(Expr::Let{name, t, value, expr})
 }
