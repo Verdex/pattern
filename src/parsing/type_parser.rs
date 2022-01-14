@@ -1,11 +1,9 @@
 
 use super::input::{Input, ParseError};
-use super::util::{ into
-                 , parse_junk
+use super::util::{ parse_junk
                  , parse_symbol
                  , keyword
                  , punct
-                 , maybe
                  , fatal
                  , fail
                  };
