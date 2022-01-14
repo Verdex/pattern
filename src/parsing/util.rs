@@ -64,7 +64,7 @@ pub fn parse_number(input : &mut Input) -> Result<i64, ParseError> {
         match input.peek() {
             Ok(c) if c.is_ascii_digit() => { cs.push(c); input.next().unwrap(); },
             Err(e @ ParseError::Fatal(_)) => return Err(e),
-            _ if cs.len() < 1 => return Err(ParseError::Fatal("encountered single '-'".to_string())),
+            _ if cs.len() < 1 => return fail("encountered single '-'"),
             _ if negative => return Ok(cs.into_iter().collect::<String>().parse::<i64>().expect("Internal Rust Parse Error") * -1),
             _ => return Ok(cs.into_iter().collect::<String>().parse::<i64>().expect("Internal Rust Parse Error")),
         }
@@ -134,8 +134,16 @@ pub fn maybe<T>( x : Result<T, ParseError> ) -> Result<Option<T>, ParseError> {
 pub fn fatal<T>(x : Result<T, ParseError>, message : &str) -> Result<T, ParseError> {
     match x {
         o @ Ok(_) => o,
-        _ => Err(ParseError::Fatal(message.to_string())), // TODO refactor Fatal to build up a stack trace
+        Err(ParseError::Error) => Err(ParseError::Fatal(vec![message.to_string()])), 
+        Err(ParseError::Fatal(mut fs)) => {
+            fs.push(message.to_string());
+            Err(ParseError::Fatal(fs))
+        },
     }
+}
+
+pub fn fail<T>(message : &str) -> Result<T, ParseError> {
+    Err(ParseError::Fatal(vec![message.to_string()]))
 }
 
 #[cfg(test)]

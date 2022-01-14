@@ -7,6 +7,7 @@ use super::util::{ into
                  , punct
                  , maybe
                  , fatal
+                 , fail
                  };
 use crate::ast::Type;
 
@@ -62,7 +63,7 @@ fn parse_fun_type(input : &mut Input) -> Result<Type, ParseError> {
             }
             match punct(input, ")") {
                 Ok(_) => break,
-                Err(ParseError::Error) => return Err(ParseError::Fatal("fun type parameters must have ending ')'".to_string())),
+                Err(ParseError::Error) => return fail("fun type parameters must have ending ')'"),
                 Err(e @ ParseError::Fatal(_)) => return Err(e),
             }
         }
@@ -131,7 +132,7 @@ pub fn parse_type(input : &mut Input) -> Result<Type, ParseError> {
         }
         match punct(input, ">") {
             Ok(_) => break,
-            Err(ParseError::Error) => return Err(ParseError::Fatal("index type parameters must have ending '>'".to_string())),
+            Err(ParseError::Error) => return fail("index type parameters must have ending '>'"),
             Err(e @ ParseError::Fatal(_)) => return Err(e),
         }
     }

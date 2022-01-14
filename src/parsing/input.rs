@@ -10,7 +10,16 @@ pub struct Input<'a> {
 #[derive(Debug)]
 pub enum ParseError {
     Error,
-    Fatal(String),
+    Fatal(Vec<String>),
+}
+
+impl ParseError {
+    pub fn display(&self) -> String {
+        match self {
+            ParseError::Error => "Error".to_string(),
+            ParseError::Fatal(fs) => format!( "Fatal:\n {}", fs.join("\n") ),
+        }
+    }
 }
 
 impl<'a> Input<'a> {

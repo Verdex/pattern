@@ -9,6 +9,7 @@ use super::util::{ into
                  , punct
                  , maybe
                  , fatal
+                 , fail
                  };
 use super::type_parser::parse_type;
 use crate::ast::{ StandardPattern
@@ -26,7 +27,7 @@ pub fn parse(input : &str) -> Result<Ast, ParseError> {
     let _output = parse_top_level(&mut input);
 
 
-    Err(ParseError::Fatal("Problem".to_string()))
+    fail("TODO")
 }
 
 fn parse_let(input : &mut Input) -> Result<Expr, ParseError> {
@@ -69,7 +70,7 @@ fn parse_standard_pattern(_input : &mut Input) -> Result<StandardPattern, ParseE
            [p, p, p]
            [p | p] (tail)
     */
-    Err(ParseError::Fatal("TODO".to_string()))
+    fail("TODO")
 }
 
 fn parse_array_pattern(_input : &mut Input) -> Result<ArrayPattern, ParseError> {
@@ -87,7 +88,7 @@ fn parse_array_pattern(_input : &mut Input) -> Result<ArrayPattern, ParseError> 
            [p | p] (tail)
            p; p; p
     */
-    Err(ParseError::Fatal("TODO".to_string()))
+    fail("TODO")
 }
 
 fn parse_path_pattern(_input : &mut Input) -> Result<PathPattern, ParseError> {
@@ -107,7 +108,7 @@ fn parse_path_pattern(_input : &mut Input) -> Result<PathPattern, ParseError> {
            [p | p] (tail)
            p; p; p
     */
-    Err(ParseError::Fatal("TODO".to_string()))
+    fail("TODO")
 }
 
 fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
@@ -195,7 +196,7 @@ fn parse_fun_def(input : &mut Input) -> Result<Ast, ParseError> {
 
     fatal(punct(input, ";"), "fun must have an ending ';'")?;
 
-    Err(ParseError::Fatal("TODO".to_string()))
+    fail("TODO")
 }
 
 fn parse_top_level(input : &mut Input) -> Result<Ast, ParseError> {
