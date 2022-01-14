@@ -190,8 +190,44 @@ mod test {
     }
 
     #[test]
+    fn should_parse_index_type_with_fun_inside() -> Result<(), ParseError> {
+        let mut input = Input::new("Index<fun (a) -> a>");
+        let result = parse_type(&mut input)?;
+        assert!( matches!( result, Type::Index { .. } ) );
+        // TODO add more details
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_fun_type_with_index_inside() -> Result<(), ParseError> {
+        let mut input = Input::new("fun (A<a>) -> X");
+        let result = parse_type(&mut input)?;
+        assert!( matches!( result, Type::Fun { .. } ) );
+        // TODO add more details
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_fun_type_with_index_inside_with_fun_inside() -> Result<(), ParseError> {
+        let mut input = Input::new("fun (A<fun (a) -> B>) -> X");
+        let result = parse_type(&mut input)?;
+        assert!( matches!( result, Type::Fun { .. } ) );
+        // TODO add more details
+        Ok(())
+    }
+
+    #[test]
     fn should_parse_everything() -> Result<(), ParseError> {
-        let mut input = Input::new("fun (A<fun(a) -> B>, [C<d>], [fun() -> X]) -> fun () -> X<a, b>");
+        let mut input = Input::new("fun (A<fun (a) -> B>, [C<d>], [fun () -> X]) -> fun () -> X<a, b>");
+        let result = parse_type(&mut input)?;
+        assert!( matches!( result, Type::Fun {..} ) );
+        // TODO add more details
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_everything_with_no_whitespace() -> Result<(), ParseError> {
+        let mut input = Input::new("fun(A<fun(a)->B>,[C<d>],[fun()->X])->fun()->X<a,b>");
         let result = parse_type(&mut input)?;
         assert!( matches!( result, Type::Fun {..} ) );
         // TODO add more details
