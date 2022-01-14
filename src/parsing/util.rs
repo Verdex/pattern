@@ -98,7 +98,7 @@ pub fn keyword(input : &mut Input, value : &str) -> Result<(), ParseError> {
         }
     }
 
-    match input.next() {
+    match input.peek() {
         Ok(v) if !(v.is_alphanumeric() || v == '_') => Ok(()),
         Ok(_) => { input.restore(rp); Err(ParseError::Error) },
         Err(ParseError::Error) => Ok(()),
@@ -245,6 +245,7 @@ mod test {
     fn keyword_should_parse_with_non_symbol() -> Result<(), ParseError> {
         let mut input = Input::new("input(");
         keyword(&mut input, "input")?;
+        punct(&mut input, "(")?;
         Ok(())
     }
 
