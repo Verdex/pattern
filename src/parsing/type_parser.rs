@@ -45,15 +45,42 @@ fn parse_concrete_type(input : &mut Input) -> Result<Type, ParseError> {
 }
 
 fn parse_fun_type(input : &mut Input) -> Result<Type, ParseError> {
+    fn param_list(input : &mut Input) -> Result<Vec<Type>, ParseError> {
+        fatal(punct(input, "("), "fun type must have opening '('")?;
+        match punct(input, ")") {
+            Ok(_) => return Ok(vec![]),
+            Err(ParseError::Error) => { },
+            Err(e @ ParseError::Fatal(_)) => return Err(e),
+        }
+        let mut ts = vec![];
+        loop {
+            ts.push(parse_type(input)?);
+            match punct(input, ",") {
+                Ok(_) => continue,
+                Err(ParseError::Error) => { },
+                Err(e @ ParseError::Fatal(_)) => return Err(e),
+            }
+            match punct(input, ")") {
+                Ok(_) => break,
+                Err(ParseError::Error) => return Err(ParseError::Fatal("fun type parameters must have ending ')'".to_string())),
+                Err(e @ ParseError::Fatal(_)) => return Err(e),
+            }
+        }
+
+        Ok(ts)
+    }
+
     parse_junk(input)?;
 
     keyword(input, "fun")?;
 
-    fatal(punct(input, "("), "fun type must have opening '('")?;
+    let i = fatal(param_list(input), "fun type must have param list")?;
 
-    // TODO list of Type [,] until ')'
+    fatal(punct(input, "->"), "fun type must have '->'")?;
 
-    Err(ParseError::Fatal("TODO".to_string()))
+    let output = Box::new(fatal(parse_type(input), "fun type must have output type")?);
+
+    Ok(Type::Fun{ input: i, output})
 }
 
 fn parse_array_type(input : &mut Input) -> Result<Type, ParseError> {
