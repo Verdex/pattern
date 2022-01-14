@@ -99,7 +99,7 @@ pub fn keyword(input : &mut Input, value : &str) -> Result<(), ParseError> {
     }
 
     match input.next() {
-        Ok(v) if v.is_whitespace() => Ok(()),
+        Ok(v) if !(v.is_alphanumeric() || v == '_') => Ok(()),
         Ok(_) => { input.restore(rp); Err(ParseError::Error) },
         Err(ParseError::Error) => Ok(()),
         Err(e @ ParseError::Fatal(_)) => Err(e),
@@ -237,6 +237,13 @@ mod test {
     #[test]
     fn keyword_should_parse_with_whitespace() -> Result<(), ParseError> {
         let mut input = Input::new("input extra");
+        keyword(&mut input, "input")?;
+        Ok(())
+    }
+
+    #[test]
+    fn keyword_should_parse_with_non_symbol() -> Result<(), ParseError> {
+        let mut input = Input::new("input(");
         keyword(&mut input, "input")?;
         Ok(())
     }
