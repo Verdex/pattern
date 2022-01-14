@@ -109,21 +109,91 @@ pub fn parse_type(input : &mut Input) -> Result<Type, ParseError> {
         }
     }
 
-    match t {
-        Some(t) => Ok(t), 
-        None => Err(ParseError::Error),
+    let name = match t {
+        Some(Type::Concrete(name)) => name, 
+        Some(t) => return Ok(t),
+        None => return Err(ParseError::Error),
+    };
+
+    match punct(input, "<") {
+        Ok(_) => { },
+        Err(ParseError::Error) => return Ok(Type::Concrete(name)),
+        Err(e @ ParseError::Fatal(_)) => return Err(e),
     }
-    // TODO need to do the after check for indexed types
 
-    /* TODO :
-            fun (T, T, T) -> T
-            T<T>
+    let mut params = vec![];
+    loop {
+        params.push(parse_type(input)?);
+        match punct(input, ",") {
+            Ok(_) => continue,
+            Err(ParseError::Error) => { },
+            Err(e @ ParseError::Fatal(_)) => return Err(e),
+        }
+        match punct(input, ">") {
+            Ok(_) => break,
+            Err(ParseError::Error) => return Err(ParseError::Fatal("index type parameters must have ending '>'".to_string())),
+            Err(e @ ParseError::Fatal(_)) => return Err(e),
+        }
+    }
 
-    */
+    Ok(Type::Index{ name, params })
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
 
+    #[test]
+    fn should_parse_fun_type() -> Result<(), ParseError> {
+        let mut input = Input::new("fun (a, B, c) -> D");
+        let result = parse_type(&mut input)?;
+        assert!( matches!( result, Type::Fun { .. } ) );
+        // TODO add more details
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_fun_type_with_no_params() -> Result<(), ParseError> {
+        let mut input = Input::new("fun () -> D");
+        let result = parse_type(&mut input)?;
+        assert!( matches!( result, Type::Fun { .. } ) );
+        // TODO add more details
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_index_type() -> Result<(), ParseError> {
+        let mut input = Input::new("A<a, b, C>");
+        let result = parse_type(&mut input)?;
+        assert!( matches!( result, Type::Index { .. } ) );
+        // TODO add more details
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_concrete_type() -> Result<(), ParseError> {
+        let mut input = Input::new("A");
+        let result = parse_type(&mut input)?;
+        assert!( matches!( result, Type::Concrete(_) ) );
+        // TODO add more details
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_generic_type() -> Result<(), ParseError> {
+        let mut input = Input::new("a");
+        let result = parse_type(&mut input)?;
+        assert!( matches!( result, Type::Generic(_) ) );
+        // TODO add more details
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_everything() -> Result<(), ParseError> {
+        let mut input = Input::new("fun (A<fun(a) -> B>, [C<d>], [fun() -> X]) -> fun () -> X<a, b>");
+        let result = parse_type(&mut input)?;
+        assert!( matches!( result, Type::Fun {..} ) );
+        // TODO add more details
+        Ok(())
+    }
 }

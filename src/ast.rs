@@ -18,7 +18,7 @@ pub enum Type {
     Concrete(String),
     Array(Box<Type>),
     Fun { input : Vec<Type>, output : Box<Type> },
-    Index { t : String, params : Vec<Type> },
+    Index { name : String, params : Vec<Type> },
 }
 
 #[derive(Debug)]
