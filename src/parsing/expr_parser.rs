@@ -74,6 +74,7 @@ fn parse_variable_expr(input : &mut Input) -> Result<Expr, ParseError> {
 fn parse_path_pattern(_input : &mut Input) -> Result<PathPattern, ParseError> {
     /* TODO: 
            number
+           bool
            variable
            Cons(p*)
            x @ p
@@ -94,6 +95,7 @@ fn parse_path_pattern(_input : &mut Input) -> Result<PathPattern, ParseError> {
 fn parse_standard_pattern(_input : &mut Input) -> Result<StandardPattern, ParseError> {
     /* TODO: 
            number
+           bool
            variable
            p | p
            Cons(p*)
@@ -107,9 +109,10 @@ fn parse_standard_pattern(_input : &mut Input) -> Result<StandardPattern, ParseE
     fail("TODO")
 }
 
-fn parse_array_pattern(_input : &mut Input) -> Result<ArrayPattern, ParseError> {
+fn parse_array_pattern(_input : &mut Input) -> Result<ArrayPattern, ParseError> { // TODO maybe pass in parse_expr ?
     /* TODO: 
            number
+           bool
            variable
            Cons(p*)
            x @ p
@@ -153,6 +156,8 @@ pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
     // TODO:  Will need to figure out how to do after expressions (like . and ())
 
     /* TODO :
+            Cons
+            Cons(e,e,e)
             || e
             |x, y, z| e
             |x : T, y : T, z : T| -> T  e

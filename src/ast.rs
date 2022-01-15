@@ -9,7 +9,8 @@ pub enum Expr {
     Number(i64),
     Bool(bool),
     Variable(String),
-    Let { name : String, t : Option<Type>, value : Box<Expr>, expr : Box<Expr> }
+    Cons { name : String, params : Vec<Expr> },
+    Let { name : String, t : Option<Type>, value : Box<Expr>, expr : Box<Expr> },
 }
 
 #[derive(Debug)]
