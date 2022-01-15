@@ -1,4 +1,5 @@
 
+use crate::ast::Ast;
 use super::input::{Input, ParseError};
 use super::util::{ parse_junk
                  , parse_symbol
@@ -8,11 +9,6 @@ use super::util::{ parse_junk
                  , fail
                  };
 use super::expr_parser::parse_expr;
-use crate::ast::{ StandardPattern
-                , ArrayPattern
-                , PathPattern
-                , Ast
-                };
 
 pub fn parse(input : &str) -> Result<Ast, ParseError> {
     let mut input = Input::new(input);
@@ -21,60 +17,6 @@ pub fn parse(input : &str) -> Result<Ast, ParseError> {
     let _output = parse_top_level(&mut input);
 
 
-    fail("TODO")
-}
-
-fn parse_standard_pattern(_input : &mut Input) -> Result<StandardPattern, ParseError> {
-    /* TODO: 
-           number
-           variable
-           p | p
-           Cons(p*)
-           x @ p
-           p if bool-expr
-           _
-           []
-           [p, p, p]
-           [p | p] (tail)
-    */
-    fail("TODO")
-}
-
-fn parse_array_pattern(_input : &mut Input) -> Result<ArrayPattern, ParseError> {
-    /* TODO: 
-           number
-           variable
-           Cons(p*)
-           x @ p
-           p if bool-expr
-           _{number-expr}
-           _* 
-           _
-           []
-           [p, p, p]
-           [p | p] (tail)
-           p; p; p
-    */
-    fail("TODO")
-}
-
-fn parse_path_pattern(_input : &mut Input) -> Result<PathPattern, ParseError> {
-    /* TODO: 
-           number
-           variable
-           Cons(p*)
-           x @ p
-           p if bool-expr
-           !
-           !N
-           &path_pattern_symbol_name:output_symbol
-           !&path_pattern_symbol_name:output_symbol
-           !N&path_pattern_symbol_name:output_symbol
-           []
-           [p, p, p]
-           [p | p] (tail)
-           p; p; p
-    */
     fail("TODO")
 }
 
