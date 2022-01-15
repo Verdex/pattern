@@ -43,32 +43,33 @@ fn parse_let(input : &mut Input) -> Result<Expr, ParseError> {
     Ok(Expr::Let{name, t, value, expr})
 }
 
+fn parse_bool_expr(input : &mut Input) -> Result<Expr, ParseError> {
+    into(input, parse_bool, |b| Expr::Bool(b))
+}
+
+fn parse_number_expr(input : &mut Input) -> Result<Expr, ParseError> {
+    into(input, parse_number, |n| Expr::Number(n))
+}
+
+fn parse_variable_expr(input : &mut Input) -> Result<Expr, ParseError> {
+    let rp = input.clone();
+
+    let sym = parse_symbol(input)?;
+
+    let first = sym.chars().nth(0)
+        .expect("parse_expr::parse_variable_expr parse_symbol somehow returned zero length string");
+
+    if first.is_lowercase() {
+        Ok(Expr::Variable(sym))
+    }
+    else {
+        input.restore(rp);
+        Err(ParseError::Error)
+    }
+}
+
 pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
 
-    fn parse_bool_expr(input : &mut Input) -> Result<Expr, ParseError> {
-        into(input, parse_bool, |b| Expr::Bool(b))
-    }
-
-    fn parse_number_expr(input : &mut Input) -> Result<Expr, ParseError> {
-        into(input, parse_number, |n| Expr::Number(n))
-    }
-
-    fn parse_variable_expr(input : &mut Input) -> Result<Expr, ParseError> {
-        let rp = input.clone();
-
-        let sym = parse_symbol(input)?;
-
-        let first = sym.chars().nth(0)
-            .expect("parse_expr::parse_variable_expr parse_symbol somehow returned zero length string");
-
-        if first.is_lowercase() {
-            Ok(Expr::Variable(sym))
-        }
-        else {
-            input.restore(rp);
-            Err(ParseError::Error)
-        }
-    }
 
     let ps = [ parse_bool_expr
              , parse_number_expr
