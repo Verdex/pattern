@@ -146,6 +146,31 @@ pub fn fail<T>(message : &str) -> Result<T, ParseError> {
     Err(ParseError::Fatal(vec![message.to_string()]))
 }
 
+fn parse_list<T>(p : fn(&mut Input) -> Result<T, ParseError>, input : &mut Input) -> Result<Vec<T>, ParseError> {
+    punct(input, "(")?;
+    match punct(input, ")") {
+        Ok(_) => return Ok(vec![]),
+        Err(ParseError::Error) => { },
+        Err(e @ ParseError::Fatal(_)) => return Err(e),
+    }
+    let mut ps = vec![];
+    loop {
+        ps.push(p(input)?);
+        match punct(input, ",") {
+            Ok(_) => continue,
+            Err(ParseError::Error) => { },
+            Err(e @ ParseError::Fatal(_)) => return Err(e),
+        }
+        match punct(input, ")") {
+            Ok(_) => break,
+            Err(ParseError::Error) => return fail("fun type parameters must have ending ')'"),
+            Err(e @ ParseError::Fatal(_)) => return Err(e),
+        }
+    }
+
+    Ok(ps)
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
