@@ -37,6 +37,32 @@ fn parse_variable(input : &mut Input) -> Result<String, ParseError> {
         Err(ParseError::Error)
     }
 }
+
+fn parse_constructor<T>(p : fn(&mut Input) -> Result<T, ParseError>, input : &mut Input) -> Result<(String, Vec<T>), ParseError> {
+    fn parse_name(input : &mut Input) -> Result<String, ParseError> {
+        let rp = input.clone();
+
+        let sym = parse_symbol(input)?;
+
+        let first = sym.chars().nth(0)
+            .expect("pattern parse_symbol somehow returned zero length string");
+
+        if first.is_uppercase() {
+            Ok(sym)
+        }
+        else {
+            input.restore(rp);
+            Err(ParseError::Error)
+        }
+    }
+
+    let name = parse_name(input)?;
+
+    match maybe(parse_params(p, input))? {
+        Some(params) => Ok( (name, params) ),
+        None => Ok( (name, vec![]) ),
+    }
+}
 // TODO:  NOTE:  parse_series( ..., [, | ) // tada
 
 pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<PathPattern, ParseError> {
@@ -51,7 +77,6 @@ pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError
     fn parse_var_pattern(input : &mut Input) -> Result<PathPattern, ParseError> {
         into(input, parse_variable, |v| PathPattern::Variable(v))
     }
-
     
     let ps = [ parse_number_pattern
              , parse_bool_pattern

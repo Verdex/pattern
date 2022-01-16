@@ -146,7 +146,7 @@ pub fn fail<T>(message : &str) -> Result<T, ParseError> {
     Err(ParseError::Fatal(vec![message.to_string()]))
 }
 
-pub fn parse_series<T>(p : fn(&mut Input) -> Result<T, ParseError>, start : &str, end : &str, input : &mut Input) -> Result<Vec<T>, ParseError> {
+pub fn parse_series<T, F : Fn(&mut Input) -> Result<T, ParseError>>(p : F, start : &str, end : &str, input : &mut Input) -> Result<Vec<T>, ParseError> {
     punct(input, start)?;
     match punct(input, end) {
         Ok(_) => return Ok(vec![]),
@@ -171,11 +171,11 @@ pub fn parse_series<T>(p : fn(&mut Input) -> Result<T, ParseError>, start : &str
     Ok(ps)
 }
 
-pub fn parse_array<T>(p : fn(&mut Input) -> Result<T, ParseError>, input : &mut Input) -> Result<Vec<T>, ParseError> {
+pub fn parse_array<T, F : Fn(&mut Input) -> Result<T, ParseError>>(p : F, input : &mut Input) -> Result<Vec<T>, ParseError> {
     parse_series(p, "[", "]", input)
 }
 
-pub fn parse_params<T>(p : fn(&mut Input) -> Result<T, ParseError>, input : &mut Input) -> Result<Vec<T>, ParseError> {
+pub fn parse_params<T, F : Fn(&mut Input) -> Result<T, ParseError>>(p : F, input : &mut Input) -> Result<Vec<T>, ParseError> {
     parse_series(p, "(", ")", input)
 }
 
