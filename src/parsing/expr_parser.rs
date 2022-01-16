@@ -17,6 +17,7 @@ use super::util::{ into
 use super::type_parser::parse_type;
 use crate::ast::{ Expr
                 , Type
+                , FunParam
                 , StandardPattern
                 , PathPattern
                 , ArrayPattern
@@ -98,10 +99,30 @@ fn parse_constructor_expr(input : &mut Input) -> Result<Expr, ParseError> {
 }
 
 fn parse_lambda(input : &mut Input) -> Result<Expr, ParseError> {
-    /*fn params(input : &mut Input) -> Result<Vec<?>, ParseError> {
-       parse_series( ?, "|", "|", input) 
-    }*/
-    fail("TODO")
+    fn params(input : &mut Input) -> Result<Vec<FunParam>, ParseError> {
+        fn parse_lambda_param(input : &mut Input) -> Result<FunParam, ParseError> {
+            fn parse_colon_type(input : &mut Input) -> Result<Type, ParseError> {
+                punct(input, ":")?;
+                fatal(parse_type(input), "lambda parameter must have type after ':'")
+            }
+            let name = parse_symbol(input)?;
+            let t = maybe(parse_colon_type(input))?;
+            Ok(FunParam { name, t })
+        }
+
+        parse_series( parse_lambda_param, "|", "|", input) 
+    }
+
+    fn return_type(input : &mut Input) -> Result<Type, ParseError> {
+        punct(input, "->")?;
+        fatal(parse_type(input), "return_type must have a type after '->'")
+    }
+
+    let params = params(input)?;
+    let return_type = maybe(return_type(input))?;
+    let expr = Box::new(fatal(parse_expr(input), "lambda must have expr")?);
+    
+    Ok(Expr::Lambda { params, return_type, expr })
 }
 
 fn parse_path_pattern(_input : &mut Input) -> Result<PathPattern, ParseError> {
@@ -168,6 +189,7 @@ pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
              , parse_number_expr
              , parse_let
              , parse_constructor_expr
+             , parse_lambda
 
              , parse_variable_expr // This should probably be last to avoid eating up keywords, etc
              ];

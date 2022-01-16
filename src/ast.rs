@@ -5,12 +5,19 @@ pub enum Ast {
 }
 
 #[derive(Debug)]
+pub struct FunParam {
+    pub name : String,
+    pub t : Option<Type>,
+}
+
+#[derive(Debug)]
 pub enum Expr {
     Number(i64),
     Bool(bool),
     Variable(String),
     Cons { name : String, params : Vec<Expr> },
     Let { name : String, t : Option<Type>, value : Box<Expr>, expr : Box<Expr> },
+    Lambda { params : Vec<FunParam>, return_type : Option<Type>, expr : Box<Expr> },
 }
 
 #[derive(Debug)]
