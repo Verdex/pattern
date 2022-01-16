@@ -66,16 +66,21 @@ fn parse_constructor<T, F : Fn(&mut Input) -> Result<T, ParseError>>(p : F, inpu
 // TODO:  NOTE:  parse_series( ..., [, | ) // tada
 
 pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<PathPattern, ParseError> {
-    fn parse_number_pattern(input : &mut Input) -> Result<PathPattern, ParseError> {
+
+    fn parse_number_pattern(_ : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<PathPattern, ParseError> {
         into(input, parse_number, |n| PathPattern::Number(n))
     }
     
-    fn parse_bool_pattern(input : &mut Input) -> Result<PathPattern, ParseError> {
+    fn parse_bool_pattern(_ : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<PathPattern, ParseError> {
         into(input, parse_bool, |b| PathPattern::Bool(b))
     }
 
-    fn parse_var_pattern(input : &mut Input) -> Result<PathPattern, ParseError> {
+    fn parse_var_pattern(_ : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<PathPattern, ParseError> {
         into(input, parse_variable, |v| PathPattern::Variable(v))
+    }
+
+    fn parse_cons_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<PathPattern, ParseError> {
+        into(input, |i| parse_constructor(|x| parse_path_pattern(parse_expr, x), i), |(name, params)| PathPattern::Cons{name, params})
     }
     
     let ps = [ parse_number_pattern
@@ -87,7 +92,7 @@ pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError
     let mut pattern = None;
     
     for p in ps {
-        match p(input) {
+        match p(parse_expr, input) {
             Ok(e) => { pattern = Some(e); break; },
             e @ Err(ParseError::Fatal(_)) => return e,
             _ => { },

@@ -35,6 +35,7 @@ pub enum StandardPattern {
     Number(i64),
     Bool(bool),
     Variable(String),
+    Cons { name : String, params : Vec<StandardPattern> },
 }
 
 #[derive(Debug)]
@@ -42,6 +43,7 @@ pub enum ArrayPattern {
     Number(i64),
     Bool(bool),
     Variable(String),
+    Cons { name : String, params : Vec<ArrayPattern> },
 }
 
 #[derive(Debug)]
@@ -49,4 +51,5 @@ pub enum PathPattern {
     Number(i64),
     Bool(bool),
     Variable(String),
+    Cons { name : String, params : Vec<PathPattern> },
 }
