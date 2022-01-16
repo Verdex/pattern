@@ -171,7 +171,7 @@ fn parse_series<T>(p : fn(&mut Input) -> Result<T, ParseError>, start : &str, en
     Ok(ps)
 }
 
-pub fn parse_list<T>(p : fn(&mut Input) -> Result<T, ParseError>, input : &mut Input) -> Result<Vec<T>, ParseError> {
+pub fn parse_array<T>(p : fn(&mut Input) -> Result<T, ParseError>, input : &mut Input) -> Result<Vec<T>, ParseError> {
     parse_series(p, "[", "]", input)
 }
 
