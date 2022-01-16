@@ -212,9 +212,6 @@ pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
     // TODO:  Will need to figure out how to do after expressions (like . and ())
 
     /* TODO :
-            || e
-            |x, y, z| e
-            |x : T, y : T, z : T| -> T  e
             [e, e, e]
             {p, p, p}
             <p, p, p>
@@ -257,6 +254,78 @@ mod test {
         let mut input = Input::new("SomeCons(1, 2, 3)");
         let result = parse_expr(&mut input)?;
         assert!( matches!( result, Expr::Cons { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn lambda_should_parse_no_param_lambda() -> Result<(), ParseError> {
+        let mut input = Input::new("|| 5");
+        let result = parse_expr(&mut input)?;
+        assert!( matches!( result, Expr::Lambda { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn lambda_should_parse_no_type_param_lambda() -> Result<(), ParseError> {
+        let mut input = Input::new("|x| x");
+        let result = parse_expr(&mut input)?;
+        assert!( matches!( result, Expr::Lambda { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn lambda_should_parse_no_type_params_lambda() -> Result<(), ParseError> {
+        let mut input = Input::new("|x, y, z| Cons(x, y, z)");
+        let result = parse_expr(&mut input)?;
+        assert!( matches!( result, Expr::Lambda { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn lambda_should_parse_type_param_lambda() -> Result<(), ParseError> {
+        let mut input = Input::new("|x : Type| x");
+        let result = parse_expr(&mut input)?;
+        assert!( matches!( result, Expr::Lambda { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
+    
+    #[test]
+    fn lambda_should_parse_type_params_lambda() -> Result<(), ParseError> {
+        let mut input = Input::new("|x : Type, y : Type, z : Number| x");
+        let result = parse_expr(&mut input)?;
+        assert!( matches!( result, Expr::Lambda { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn lambda_should_parse_type_params_lambda_with_return_type() -> Result<(), ParseError> {
+        let mut input = Input::new("|x : Type, y : Type, z : Number| -> Type x");
+        let result = parse_expr(&mut input)?;
+        assert!( matches!( result, Expr::Lambda { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn lambda_should_parse_lambda_with_return_type() -> Result<(), ParseError> {
+        let mut input = Input::new("|| -> Number 5");
+        let result = parse_expr(&mut input)?;
+        assert!( matches!( result, Expr::Lambda { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn lambda_should_parse_lambda_with_fun_return_type() -> Result<(), ParseError> {
+        let mut input = Input::new("|| -> fun(Number) -> Number |x| x");
+        let result = parse_expr(&mut input)?;
+        assert!( matches!( result, Expr::Lambda { .. } ) );
         // TODO add more details 
         Ok(())
     }
