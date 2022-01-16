@@ -32,15 +32,21 @@ pub enum Type {
 
 #[derive(Debug)]
 pub enum StandardPattern {
-
+    Number(i64),
+    Bool(bool),
+    Variable(String),
 }
 
 #[derive(Debug)]
 pub enum ArrayPattern {
-
+    Number(i64),
+    Bool(bool),
+    Variable(String),
 }
 
 #[derive(Debug)]
 pub enum PathPattern {
-
+    Number(i64),
+    Bool(bool),
+    Variable(String),
 }
