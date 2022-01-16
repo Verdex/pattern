@@ -18,6 +18,7 @@ pub enum Expr {
     Cons { name : String, params : Vec<Expr> },
     Let { name : String, t : Option<Type>, value : Box<Expr>, expr : Box<Expr> },
     Lambda { params : Vec<FunParam>, return_type : Option<Type>, expr : Box<Expr> },
+    Array(Vec<Expr>),
 }
 
 #[derive(Debug)]

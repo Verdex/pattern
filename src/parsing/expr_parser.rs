@@ -125,71 +125,19 @@ fn parse_lambda(input : &mut Input) -> Result<Expr, ParseError> {
     Ok(Expr::Lambda { params, return_type, expr })
 }
 
-fn parse_path_pattern(_input : &mut Input) -> Result<PathPattern, ParseError> {
-    /* TODO: 
-           number
-           bool
-           variable
-           Cons(p*)
-           x @ p
-           p if bool-expr
-           !
-           !N
-           &path_pattern_symbol_name:output_symbol
-           !&path_pattern_symbol_name:output_symbol
-           !N&path_pattern_symbol_name:output_symbol
-           []
-           [p, p, p]
-           [p | p] (tail)
-           p; p; p
-    */
-    fail("TODO")
-}
-
-fn parse_standard_pattern(_input : &mut Input) -> Result<StandardPattern, ParseError> {
-    /* TODO: 
-           number
-           bool
-           variable
-           p | p
-           Cons(p*)
-           x @ p
-           p if bool-expr
-           _
-           []
-           [p, p, p]
-           [p | p] (tail)
-    */
-    fail("TODO")
-}
-
-fn parse_array_pattern(_input : &mut Input) -> Result<ArrayPattern, ParseError> { // TODO maybe pass in parse_expr ?
-    /* TODO: 
-           number
-           bool
-           variable
-           Cons(p*)
-           x @ p
-           p if bool-expr
-           _{number-expr}
-           _* 
-           _
-           []
-           [p, p, p]
-           [p | p] (tail)
-           p; p; p
-    */
-    fail("TODO")
-}
-
 pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
 
+    fn parse_array_expr(input : &mut Input) -> Result<Expr, ParseError> {
+        let es = parse_array(parse_expr, input)?;
+        Ok(Expr::Array(es))
+    }
 
     let ps = [ parse_bool_expr
              , parse_number_expr
              , parse_let
              , parse_constructor_expr
              , parse_lambda
+             , parse_array_expr
 
              , parse_variable_expr // This should probably be last to avoid eating up keywords, etc
              ];
@@ -326,6 +274,33 @@ mod test {
         let mut input = Input::new("|| -> fun(Number) -> Number |x| x");
         let result = parse_expr(&mut input)?;
         assert!( matches!( result, Expr::Lambda { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn array_should_parse_empty_array() -> Result<(), ParseError> {
+        let mut input = Input::new("[]");
+        let result = parse_expr(&mut input)?;
+        assert!( matches!( result, Expr::Array(_) ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn array_should_parse_array_with_one_item() -> Result<(), ParseError> {
+        let mut input = Input::new("[4]");
+        let result = parse_expr(&mut input)?;
+        assert!( matches!( result, Expr::Array(_) ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn array_should_parse_array() -> Result<(), ParseError> {
+        let mut input = Input::new("[4, 6, 7]");
+        let result = parse_expr(&mut input)?;
+        assert!( matches!( result, Expr::Array(_) ) );
         // TODO add more details 
         Ok(())
     }
