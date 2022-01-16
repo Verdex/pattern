@@ -160,8 +160,8 @@ pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
     // TODO:  Will need to figure out how to do after expressions (like . and ())
 
     /* TODO :
-            {p, p, p}
-            <p, p, p>
+            [|p, p, p|]
+            {|p, p, p|}
             match e {
                 p => e,
                 p => e,
