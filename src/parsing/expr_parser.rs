@@ -3,7 +3,7 @@ use super::input::{Input, ParseError};
 use super::util::{ into
                  , parse_junk
                  , parse_series
-                 , parse_list
+                 , parse_array
                  , parse_params
                  , parse_symbol
                  , parse_number
@@ -101,6 +101,7 @@ fn parse_lambda(input : &mut Input) -> Result<Expr, ParseError> {
     /*fn params(input : &mut Input) -> Result<Vec<?>, ParseError> {
        parse_series( ?, "|", "|", input) 
     }*/
+    fail("TODO")
 }
 
 fn parse_path_pattern(_input : &mut Input) -> Result<PathPattern, ParseError> {
