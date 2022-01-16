@@ -163,7 +163,7 @@ fn parse_list<T>(p : fn(&mut Input) -> Result<T, ParseError>, input : &mut Input
         }
         match punct(input, ")") {
             Ok(_) => break,
-            Err(ParseError::Error) => return fail("fun type parameters must have ending ')'"),
+            Err(ParseError::Error) => return fail("list parameters must have ending ')'"),
             Err(e @ ParseError::Fatal(_)) => return Err(e),
         }
     }
