@@ -2,7 +2,7 @@
 use super::input::{Input, ParseError};
 use super::util::{ parse_junk
                  , parse_symbol
-                 , parse_list
+                 , parse_params
                  , keyword
                  , punct
                  , fatal
@@ -49,7 +49,7 @@ fn parse_fun_type(input : &mut Input) -> Result<Type, ParseError> {
 
     keyword(input, "fun")?;
 
-    let i = fatal(parse_list(parse_type, input), "fun type must have param list")?;
+    let i = fatal(parse_params(parse_type, input), "fun type must have param list")?;
 
     fatal(punct(input, "->"), "fun type must have '->'")?;
 

@@ -2,7 +2,7 @@
 use super::input::{Input, ParseError};
 use super::util::{ into
                  , parse_junk
-                 , parse_list
+                 , parse_params
                  , parse_symbol
                  , parse_number
                  , parse_bool
@@ -89,7 +89,7 @@ fn parse_constructor_expr(input : &mut Input) -> Result<Expr, ParseError> {
 
     let name = parse_name(input)?;
 
-    match maybe(parse_list(parse_expr, input))? {
+    match maybe(parse_params(parse_expr, input))? {
         Some(params) => Ok(Expr::Cons { name, params }),
         None => Ok(Expr::Cons {name, params: vec![]}),
     }

@@ -146,7 +146,7 @@ pub fn fail<T>(message : &str) -> Result<T, ParseError> {
     Err(ParseError::Fatal(vec![message.to_string()]))
 }
 
-pub fn parse_list<T>(p : fn(&mut Input) -> Result<T, ParseError>, input : &mut Input) -> Result<Vec<T>, ParseError> {
+pub fn parse_params<T>(p : fn(&mut Input) -> Result<T, ParseError>, input : &mut Input) -> Result<Vec<T>, ParseError> {
     punct(input, "(")?;
     match punct(input, ")") {
         Ok(_) => return Ok(vec![]),
