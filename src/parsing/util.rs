@@ -146,9 +146,9 @@ pub fn fail<T>(message : &str) -> Result<T, ParseError> {
     Err(ParseError::Fatal(vec![message.to_string()]))
 }
 
-pub fn parse_params<T>(p : fn(&mut Input) -> Result<T, ParseError>, input : &mut Input) -> Result<Vec<T>, ParseError> {
-    punct(input, "(")?;
-    match punct(input, ")") {
+fn parse_series<T>(p : fn(&mut Input) -> Result<T, ParseError>, start : &str, end : &str, input : &mut Input) -> Result<Vec<T>, ParseError> {
+    punct(input, start)?;
+    match punct(input, end) {
         Ok(_) => return Ok(vec![]),
         Err(ParseError::Error) => { },
         Err(e @ ParseError::Fatal(_)) => return Err(e),
@@ -161,14 +161,18 @@ pub fn parse_params<T>(p : fn(&mut Input) -> Result<T, ParseError>, input : &mut
             Err(ParseError::Error) => { },
             Err(e @ ParseError::Fatal(_)) => return Err(e),
         }
-        match punct(input, ")") {
+        match punct(input, end) {
             Ok(_) => break,
-            Err(ParseError::Error) => return fail("list parameters must have ending ')'"),
+            Err(ParseError::Error) => return fail("series items must have ending '{end}'"),
             Err(e @ ParseError::Fatal(_)) => return Err(e),
         }
     }
 
     Ok(ps)
+}
+
+pub fn parse_params<T>(p : fn(&mut Input) -> Result<T, ParseError>, input : &mut Input) -> Result<Vec<T>, ParseError> {
+    parse_series(p, "(", ")", input)
 }
 
 #[cfg(test)]
