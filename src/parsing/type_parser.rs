@@ -2,6 +2,7 @@
 use super::input::{Input, ParseError};
 use super::util::{ parse_junk
                  , parse_symbol
+                 , parse_list
                  , keyword
                  , punct
                  , fatal
@@ -44,36 +45,11 @@ fn parse_concrete_type(input : &mut Input) -> Result<Type, ParseError> {
 }
 
 fn parse_fun_type(input : &mut Input) -> Result<Type, ParseError> {
-    fn param_list(input : &mut Input) -> Result<Vec<Type>, ParseError> {
-        fatal(punct(input, "("), "fun type must have opening '('")?;
-        match punct(input, ")") {
-            Ok(_) => return Ok(vec![]),
-            Err(ParseError::Error) => { },
-            Err(e @ ParseError::Fatal(_)) => return Err(e),
-        }
-        let mut ts = vec![];
-        loop {
-            ts.push(parse_type(input)?);
-            match punct(input, ",") {
-                Ok(_) => continue,
-                Err(ParseError::Error) => { },
-                Err(e @ ParseError::Fatal(_)) => return Err(e),
-            }
-            match punct(input, ")") {
-                Ok(_) => break,
-                Err(ParseError::Error) => return fail("fun type parameters must have ending ')'"),
-                Err(e @ ParseError::Fatal(_)) => return Err(e),
-            }
-        }
-
-        Ok(ts)
-    }
-
     parse_junk(input)?;
 
     keyword(input, "fun")?;
 
-    let i = fatal(param_list(input), "fun type must have param list")?;
+    let i = fatal(parse_list(parse_type, input), "fun type must have param list")?;
 
     fatal(punct(input, "->"), "fun type must have '->'")?;
 
