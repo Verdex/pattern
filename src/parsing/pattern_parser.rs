@@ -75,7 +75,6 @@ pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError
     }
 
     /* TODO: 
-           variable
            Cons(p*)
            x @ p
            p if bool-expr
