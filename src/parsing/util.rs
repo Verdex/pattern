@@ -155,7 +155,7 @@ pub fn parse_series<T>(p : fn(&mut Input) -> Result<T, ParseError>, start : &str
     }
     let mut ps = vec![];
     loop {
-        ps.push(p(input)?);
+        ps.push(fatal(p(input), "series items must parse successfully")?);
         match punct(input, ",") {
             Ok(_) => continue,
             Err(ParseError::Error) => { },
