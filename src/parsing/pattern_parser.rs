@@ -66,7 +66,6 @@ fn parse_constructor<T, F : Fn(&mut Input) -> Result<T, ParseError>>(p : F, inpu
 // TODO:  NOTE:  parse_series( ..., [, | ) // tada
 
 pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<PathPattern, ParseError> {
-
     fn parse_number_pattern(_ : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<PathPattern, ParseError> {
         into(input, parse_number, |n| PathPattern::Number(n))
     }
@@ -84,10 +83,11 @@ pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError
     }
     
     let ps = [ parse_number_pattern
-             , parse_bool_pattern
+            , parse_bool_pattern
+            , parse_cons_pattern
 
-             , parse_var_pattern// This should probably be last to avoid eating up keywords, etc
-             ];
+            , parse_var_pattern// This should probably be last to avoid eating up keywords, etc
+            ];
 
     let mut pattern = None;
     
@@ -103,6 +103,7 @@ pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError
         Some(pattern) => Ok(pattern), 
         None => Err(ParseError::Error),
     }
+
 
     /* TODO: 
            Cons(p*)
@@ -160,4 +161,12 @@ pub fn parse_array_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseErro
 mod test {
     use super::*;
 
+    #[test]
+    fn path_pattern_cons_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("Cons(A, A)");
+        let result = parse_path_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, PathPattern::Cons { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
 }
