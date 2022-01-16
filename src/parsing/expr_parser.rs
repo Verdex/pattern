@@ -160,7 +160,6 @@ pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
     // TODO:  Will need to figure out how to do after expressions (like . and ())
 
     /* TODO :
-            [e, e, e]
             {p, p, p}
             <p, p, p>
             match e {
