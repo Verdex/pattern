@@ -38,7 +38,7 @@ fn parse_variable(input : &mut Input) -> Result<String, ParseError> {
     }
 }
 
-fn parse_constructor<T>(p : fn(&mut Input) -> Result<T, ParseError>, input : &mut Input) -> Result<(String, Vec<T>), ParseError> {
+fn parse_constructor<T, F : Fn(&mut Input) -> Result<T, ParseError>>(p : F, input : &mut Input) -> Result<(String, Vec<T>), ParseError> {
     fn parse_name(input : &mut Input) -> Result<String, ParseError> {
         let rp = input.clone();
 
