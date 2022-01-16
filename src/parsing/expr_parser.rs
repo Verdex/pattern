@@ -2,6 +2,7 @@
 use super::input::{Input, ParseError};
 use super::util::{ into
                  , parse_junk
+                 , parse_list
                  , parse_symbol
                  , parse_number
                  , parse_bool
@@ -71,6 +72,29 @@ fn parse_variable_expr(input : &mut Input) -> Result<Expr, ParseError> {
     }
 }
 
+fn parse_constructor_expr(input : &mut Input) -> Result<Expr, ParseError> {
+    fn parse_name(input : &mut Input) -> Result<String, ParseError> {
+        let rp = input.clone();
+        let sym = parse_symbol(input)?;
+        let first = sym.chars().nth(0)
+            .expect("parse_expr::parse_constructor_expr parse_symbol somehow returned zero length string");
+        if first.is_uppercase() {
+            Ok(sym)
+        }
+        else {
+            input.restore(rp);
+            Err(ParseError::Error)
+        }
+    }
+
+    let name = parse_name(input)?;
+
+    match maybe(parse_list(parse_expr, input))? {
+        Some(params) => Ok(Expr::Cons { name, params }),
+        None => Ok(Expr::Cons {name, params: vec![]}),
+    }
+}
+
 fn parse_path_pattern(_input : &mut Input) -> Result<PathPattern, ParseError> {
     /* TODO: 
            number
@@ -134,6 +158,7 @@ pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
     let ps = [ parse_bool_expr
              , parse_number_expr
              , parse_let
+             , parse_constructor_expr
 
              , parse_variable_expr // This should probably be last to avoid eating up keywords, etc
              ];
@@ -181,12 +206,29 @@ mod test {
     use super::*;
 
     #[test]
-    fn let_should_parse_let() -> Result<(), ParseError> {
+    fn let_should_parse() -> Result<(), ParseError> {
         let mut input = Input::new("let x = 5 in x");
-        let result = parse_let(&mut input)?;
+        let result = parse_expr(&mut input)?;
         assert!( matches!( result, Expr::Let { .. } ) );
-        // TODO this test can be more comprehensive 
+        // TODO add more details 
         Ok(())
     }
 
+    #[test]
+    fn cons_should_parse_non_param_cons() -> Result<(), ParseError> {
+        let mut input = Input::new("SomeCons");
+        let result = parse_expr(&mut input)?;
+        assert!( matches!( result, Expr::Cons { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn cons_should_parse_params_cons() -> Result<(), ParseError> {
+        let mut input = Input::new("SomeCons(1, 2, 3)");
+        let result = parse_expr(&mut input)?;
+        assert!( matches!( result, Expr::Cons { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
 }
