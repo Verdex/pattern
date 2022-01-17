@@ -83,11 +83,11 @@ pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError
     }
     
     let ps = [ parse_number_pattern
-            , parse_bool_pattern
-            , parse_cons_pattern
+             , parse_bool_pattern
+             , parse_cons_pattern
 
-            , parse_var_pattern// This should probably be last to avoid eating up keywords, etc
-            ];
+             , parse_var_pattern// This should probably be last to avoid eating up keywords, etc
+             ];
 
     let mut pattern = None;
     
