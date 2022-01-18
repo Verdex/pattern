@@ -104,11 +104,42 @@ pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError
         Ok(PathPattern::Wildcard)
     }
 
+    fn parse_next_pattern(_ : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<PathPattern, ParseError> {
+        punct(input, "!")?;
+        into(input, |i| maybe(parse_number(i)), |number| PathPattern::Next(number))
+    }
+
+    fn parse_and_pattern(_ : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<PathPattern, ParseError> {
+        punct(input, "&")?;
+        let name = fatal(parse_symbol(input), "& pattern must have a path name")?;
+        fatal(punct(input, ":"), "& pattern must have a ':'")?;
+        let output = fatal(parse_symbol(input), "& pattern must have an output")?;
+        Ok(PathPattern::And{ name, output })
+    }
+
+    fn parse_next_and_pattern(_ : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<PathPattern, ParseError> {
+        let rp = input.clone();
+        punct(input, "!")?;
+        let order = maybe(parse_number(input))?;
+        match punct(input, "&") {
+            Ok(_) => { }, 
+            Err(ParseError::Error) => { input.restore(rp); return Err(ParseError::Error); },
+            Err(e @ ParseError::Fatal(_)) => return Err(e),
+        }
+        let name = fatal(parse_symbol(input), "& pattern must have a path name")?;
+        fatal(punct(input, ":"), "& pattern must have a ':'")?;
+        let output = fatal(parse_symbol(input), "& pattern must have an output")?;
+        Ok(PathPattern::NextAnd{ order, name, output })
+    }
+
     let ps = [ parse_number_pattern
              , parse_bool_pattern
              , parse_cons_pattern
              , parse_at_pattern
              , parse_wildcard_pattern
+             , parse_and_pattern        // Need to do in this order parse_and_pattern, parse_next_and_pattern, parse_next_pattern
+             , parse_next_and_pattern
+             , parse_next_pattern
 
              , parse_var_pattern// This should probably be last to avoid eating up keywords, etc
              ];
@@ -131,11 +162,6 @@ pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError
 
     /* TODO: 
            p if bool-expr
-           !
-           !N
-           &path_pattern_symbol_name:output_symbol
-           !&path_pattern_symbol_name:output_symbol
-           !N&path_pattern_symbol_name:output_symbol
            []
            [p, p, p]
            [p | p] (tail)
@@ -240,6 +266,49 @@ mod test {
         let mut input = Input::new("_");
         let result = parse_path_pattern(|i| Err(ParseError::Error), &mut input)?;
         assert!( matches!( result, PathPattern::Wildcard ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn path_pattern_next_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("!");
+        let result = parse_path_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, PathPattern::Next(None)) );
+        Ok(())
+    }
+
+    #[test]
+    fn path_pattern_next_with_order_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("!2");
+        let result = parse_path_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, PathPattern::Next(Some(2)) ) );
+        Ok(())
+    }
+
+    #[test]
+    fn path_pattern_and_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("&path:output");
+        let result = parse_path_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, PathPattern::And { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn path_pattern_next_and_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("!&path:output");
+        let result = parse_path_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, PathPattern::NextAnd {..} ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn path_pattern_next_and_with_order_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("!2&path:output");
+        let result = parse_path_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, PathPattern::NextAnd {..} ) );
         // TODO add more details 
         Ok(())
     }

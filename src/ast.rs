@@ -58,4 +58,7 @@ pub enum PathPattern {
     Cons { name : String, params : Vec<PathPattern> },
     At { name : String, pattern : Box<PathPattern> },
     Wildcard,
+    Next(Option<i64>),
+    And { name : String, output : String },
+    NextAnd { order : Option<i64>, name : String, output : String },
 }
