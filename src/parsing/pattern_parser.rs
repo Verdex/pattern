@@ -148,7 +148,6 @@ pub fn parse_standard_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseE
            number
            bool
            variable
-           p | p
            Cons(p*)
            x @ p
            p if bool-expr
