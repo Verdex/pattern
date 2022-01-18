@@ -37,6 +37,7 @@ pub enum StandardPattern {
     Variable(String),
     Cons { name : String, params : Vec<StandardPattern> },
     At { name : String, pattern : Box<StandardPattern> },
+    Wildcard,
 }
 
 #[derive(Debug)]
@@ -46,6 +47,7 @@ pub enum ArrayPattern {
     Variable(String),
     Cons { name : String, params : Vec<ArrayPattern> },
     At { name : String, pattern : Box<ArrayPattern> },
+    Wildcard,
 }
 
 #[derive(Debug)]
@@ -55,4 +57,5 @@ pub enum PathPattern {
     Variable(String),
     Cons { name : String, params : Vec<PathPattern> },
     At { name : String, pattern : Box<PathPattern> },
+    Wildcard,
 }

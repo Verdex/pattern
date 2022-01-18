@@ -99,10 +99,16 @@ pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError
         into(input, |i| parse_at(|x| parse_path_pattern(parse_expr, x), i), |(name, pattern)| PathPattern::At{name, pattern})
     }
 
+    fn parse_wildcard_pattern(_ : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<PathPattern, ParseError> {
+        punct(input, "_")?;
+        Ok(PathPattern::Wildcard)
+    }
+
     let ps = [ parse_number_pattern
              , parse_bool_pattern
              , parse_cons_pattern
              , parse_at_pattern
+             , parse_wildcard_pattern
 
              , parse_var_pattern// This should probably be last to avoid eating up keywords, etc
              ];
@@ -227,6 +233,15 @@ mod test {
         let mut input = Input::new("x @ y @ Cons(A, A)");
         let result = parse_path_pattern(|i| Err(ParseError::Error), &mut input)?;
         assert!( matches!( result, PathPattern::At { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn path_pattern_wildcard_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("_");
+        let result = parse_path_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, PathPattern::Wildcard ) );
         // TODO add more details 
         Ok(())
     }
