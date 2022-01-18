@@ -136,7 +136,6 @@ pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError
            &path_pattern_symbol_name:output_symbol
            !&path_pattern_symbol_name:output_symbol
            !N&path_pattern_symbol_name:output_symbol
-           _
            []
            [p, p, p]
            [p | p] (tail)
