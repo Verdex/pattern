@@ -63,6 +63,19 @@ fn parse_constructor<T, F : Fn(&mut Input) -> Result<T, ParseError>>(p : F, inpu
         None => Ok( (name, vec![]) ),
     }
 }
+
+fn parse_at<T, F : Fn(&mut Input) -> Result<T, ParseError>>(p : F, input : &mut Input) -> Result<(String, Box<T>), ParseError> {
+    let rp = input.clone();
+    let name = parse_symbol(input)?;
+    match punct(input, "@") {
+        Ok(_) => { },
+        Err(ParseError::Error) => { input.restore(rp); return Err(ParseError::Error); },
+        Err(e @ ParseError::Fatal(_)) => return Err(e),
+    }
+    let pattern = Box::new(fatal(p(input), "@ pattern is missing a target pattern")?);
+    Ok((name, pattern))
+}
+
 // TODO:  NOTE:  parse_series( ..., [, | ) // tada
 
 pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<PathPattern, ParseError> {
@@ -83,15 +96,7 @@ pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError
     }
 
     fn parse_at_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<PathPattern, ParseError> {
-        let rp = input.clone();
-        let name = parse_symbol(input)?;
-        match punct(input, "@") {
-            Ok(_) => { },
-            Err(ParseError::Error) => { input.restore(rp); return Err(ParseError::Error); },
-            Err(e @ ParseError::Fatal(_)) => return Err(e),
-        }
-        let pattern = Box::new(fatal(parse_path_pattern(parse_expr, input), "@ pattern is missing a target pattern")?);
-        Ok(PathPattern::At{ name, pattern })
+        into(input, |i| parse_at(|x| parse_path_pattern(parse_expr, x), i), |(name, pattern)| PathPattern::At{name, pattern})
     }
 
     let ps = [ parse_number_pattern
@@ -211,6 +216,15 @@ mod test {
     #[test]
     fn path_pattern_at_should_parse() -> Result<(), ParseError> {
         let mut input = Input::new("x @ Cons(A, A)");
+        let result = parse_path_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, PathPattern::At { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn path_pattern_at_should_parse_recursive() -> Result<(), ParseError> {
+        let mut input = Input::new("x @ y @ Cons(A, A)");
         let result = parse_path_pattern(|i| Err(ParseError::Error), &mut input)?;
         assert!( matches!( result, PathPattern::At { .. } ) );
         // TODO add more details 
