@@ -85,7 +85,11 @@ pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError
     fn parse_at_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<PathPattern, ParseError> {
         let rp = input.clone();
         let name = parse_symbol(input)?;
-        punct(input, "@")?;
+        match punct(input, "@") {
+            Ok(_) => { },
+            Err(ParseError::Error) => { input.restore(rp); return Err(ParseError::Error); },
+            Err(e @ ParseError::Fatal(_)) => return Err(e),
+        }
         let pattern = Box::new(fatal(parse_path_pattern(parse_expr, input), "@ pattern is missing a target pattern")?);
         Ok(PathPattern::At{ name, pattern })
     }
@@ -167,6 +171,33 @@ pub fn parse_array_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseErro
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn path_pattern_var_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("a");
+        let result = parse_path_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, PathPattern::Variable(_) ) );
+        // TODO add more details 
+        Ok(())
+    }
+    
+    #[test]
+    fn path_pattern_number_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("100");
+        let result = parse_path_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, PathPattern::Number(_) ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn path_pattern_bool_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("true");
+        let result = parse_path_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, PathPattern::Bool(_) ) );
+        // TODO add more details 
+        Ok(())
+    }
 
     #[test]
     fn path_pattern_cons_should_parse() -> Result<(), ParseError> {
