@@ -154,14 +154,21 @@ pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError
         }
     }
 
-    match pattern {
-        Some(pattern) => Ok(pattern), 
-        None => Err(ParseError::Error),
+    let pattern = match pattern {
+        Some(pattern) => pattern, 
+        None => return Err(ParseError::Error),
+    };
+
+    match keyword(input, "if") {
+        Ok(_) => { },
+        Err(ParseError::Error) => return Ok(pattern),
+        Err(e @ ParseError::Fatal(_)) => return Err(e),
     }
 
+    let predicate = fatal(parse_expr(input), "pattern must have expression after if")?;
 
+    Ok(PathPattern::If { pattern: Box::new(pattern), predicate })
     /* TODO: 
-           p if bool-expr
            []
            [p, p, p]
            [p | p] (tail)
@@ -309,6 +316,15 @@ mod test {
         let mut input = Input::new("!2&path:output");
         let result = parse_path_pattern(|i| Err(ParseError::Error), &mut input)?;
         assert!( matches!( result, PathPattern::NextAnd {..} ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn path_pattern_if_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("x if true");
+        let result = parse_path_pattern(|i| Ok(Expr::Bool(true)), &mut input)?;
+        assert!( matches!( result, PathPattern::If {..} ) );
         // TODO add more details 
         Ok(())
     }

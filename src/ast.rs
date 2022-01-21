@@ -38,6 +38,7 @@ pub enum StandardPattern {
     Cons { name : String, params : Vec<StandardPattern> },
     At { name : String, pattern : Box<StandardPattern> },
     Wildcard,
+    If { pattern : Box<StandardPattern>, predicate : Expr },
 }
 
 #[derive(Debug)]
@@ -48,6 +49,7 @@ pub enum ArrayPattern {
     Cons { name : String, params : Vec<ArrayPattern> },
     At { name : String, pattern : Box<ArrayPattern> },
     Wildcard,
+    If { pattern : Box<ArrayPattern>, predicate : Expr },
 }
 
 #[derive(Debug)]
@@ -61,4 +63,5 @@ pub enum PathPattern {
     Next(Option<i64>),
     And { name : String, output : String },
     NextAnd { order : Option<i64>, name : String, output : String },
+    If { pattern : Box<PathPattern>, predicate : Expr },
 }
