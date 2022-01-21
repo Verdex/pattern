@@ -31,6 +31,12 @@ pub enum Type {
 }
 
 #[derive(Debug)]
+pub enum StandardArrayPattern<P> {
+    Empty,
+    Array { items : Vec<P>, rest : Option<Box<P>> },
+}
+
+#[derive(Debug)]
 pub enum StandardPattern {
     Number(i64),
     Bool(bool),
@@ -64,4 +70,5 @@ pub enum PathPattern {
     And { name : String, output : String },
     NextAnd { order : Option<i64>, name : String, output : String },
     If { pattern : Box<PathPattern>, predicate : Expr },
+    StandardArrayPattern(StandardArrayPattern<PathPattern>),
 }
