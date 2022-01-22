@@ -128,8 +128,7 @@ fn parse_lambda(input : &mut Input) -> Result<Expr, ParseError> {
 pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
 
     fn parse_array_expr(input : &mut Input) -> Result<Expr, ParseError> {
-        let es = parse_array(parse_expr, input)?;
-        Ok(Expr::Array(es))
+        into(input, |i| parse_array(parse_expr, i), |es| Expr::Array(es))
     }
 
     let ps = [ parse_bool_expr
