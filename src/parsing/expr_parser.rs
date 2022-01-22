@@ -133,6 +133,7 @@ pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
     }
 
     fn parse_path_pattern_expr(input : &mut Input) -> Result<Expr, ParseError> {
+        // TODO this needs the whole {|p, p, p|} thing setup!
         into(input, |i| parse_path_pattern(parse_expr, i), |p| Expr::PathPattern(p))
     }
 
@@ -142,6 +143,7 @@ pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
              , parse_constructor_expr
              , parse_lambda
              , parse_array_expr
+             , parse_path_pattern_expr 
 
              , parse_variable_expr // This should probably be last to avoid eating up keywords, etc
              ];
