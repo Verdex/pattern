@@ -1,8 +1,5 @@
 use super::input::{Input, ParseError};
 use super::util::{ into
-                 , parse_junk
-                 , parse_series
-                 , parse_array
                  , parse_params
                  , parse_symbol
                  , parse_number
@@ -13,9 +10,7 @@ use super::util::{ into
                  , fatal
                  , fail
                  };
-use super::type_parser::parse_type;
 use crate::ast::{ Expr
-                , Type
                 , StandardPattern
                 , PathPattern
                 , ArrayPattern

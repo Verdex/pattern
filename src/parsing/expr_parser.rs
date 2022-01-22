@@ -19,9 +19,6 @@ use super::pattern_parser::{parse_path_pattern};
 use crate::ast::{ Expr
                 , Type
                 , FunParam
-                , StandardPattern
-                , PathPattern
-                , ArrayPattern
                 };
 
 fn parse_let(input : &mut Input) -> Result<Expr, ParseError> {
