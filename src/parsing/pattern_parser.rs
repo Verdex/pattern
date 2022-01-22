@@ -271,7 +271,7 @@ pub fn parse_standard_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseE
     Ok(StandardPattern::If { pattern: Box::new(pattern), predicate })
 }
 
-pub fn parse_array_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, _input : &mut Input) -> Result<ArrayPattern, ParseError> { 
+pub fn parse_array_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<ArrayPattern, ParseError> { 
     fn parse_number_pattern(_ : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<ArrayPattern, ParseError> {
         into(input, parse_number, |n| ArrayPattern::Number(n))
     }
@@ -339,7 +339,6 @@ pub fn parse_array_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseErro
            _{number-expr}
            _* 
     */
-    fail("TODO")
 }
 
 #[cfg(test)]
