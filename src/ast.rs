@@ -70,5 +70,5 @@ pub enum PathPattern {
     And { name : String, output : String },
     NextAnd { order : Option<i64>, name : String, output : String },
     If { pattern : Box<PathPattern>, predicate : Expr },
-    StandardArrayPattern(StandardArrayPattern<PathPattern>),
+    StandardArray(StandardArrayPattern<PathPattern>),
 }

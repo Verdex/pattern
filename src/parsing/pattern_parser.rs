@@ -77,7 +77,6 @@ fn parse_at<T, F : Fn(&mut Input) -> Result<T, ParseError>>(p : F, input : &mut 
     Ok((name, pattern))
 }
 
-// TODO:  NOTE:  parse_series( ..., [, | ) // tada
 fn parse_standard_array<P, F>( parser : F, input : &mut Input) -> Result<StandardArrayPattern<P>, ParseError> 
     where F : Fn(&mut Input) -> Result<P, ParseError> {
 
@@ -170,6 +169,10 @@ pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError
         Ok(PathPattern::NextAnd{ order, name, output })
     }
 
+    fn parse_path_standard_array_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<PathPattern, ParseError> {
+        into(input, |i| parse_standard_array(|x| parse_path_pattern(parse_expr, x), i), |array| PathPattern::StandardArray(array))
+    }
+
     let ps = [ parse_number_pattern
              , parse_bool_pattern
              , parse_cons_pattern
@@ -178,7 +181,7 @@ pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError
              , parse_and_pattern        // Need to do in this order parse_and_pattern, parse_next_and_pattern, parse_next_pattern
              , parse_next_and_pattern
              , parse_next_pattern
-
+             , parse_path_standard_array_pattern
              , parse_var_pattern// This should probably be last to avoid eating up keywords, etc
              ];
 
@@ -206,11 +209,6 @@ pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError
     let predicate = fatal(parse_expr(input), "pattern must have expression after if")?;
 
     Ok(PathPattern::If { pattern: Box::new(pattern), predicate })
-    /* TODO: 
-           []
-           [p, p, p]
-           [p | p] (tail)
-    */
 }
 
 pub fn parse_standard_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, _input : &mut Input) -> Result<StandardPattern, ParseError> {
@@ -363,6 +361,33 @@ mod test {
         let mut input = Input::new("x if true");
         let result = parse_path_pattern(|i| Ok(Expr::Bool(true)), &mut input)?;
         assert!( matches!( result, PathPattern::If {..} ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn path_pattern_standard_array_should_parse_empty() -> Result<(), ParseError> {
+        let mut input = Input::new("[]");
+        let result = parse_path_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, PathPattern::StandardArray{..} ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn path_pattern_standard_array_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("[x, y, z, !]");
+        let result = parse_path_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, PathPattern::StandardArray{..} ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn path_pattern_standard_array_should_parse_with_rest() -> Result<(), ParseError> {
+        let mut input = Input::new("[x, y, z, ! | r]");
+        let result = parse_path_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, PathPattern::StandardArray{..} ) );
         // TODO add more details 
         Ok(())
     }
