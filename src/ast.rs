@@ -46,6 +46,7 @@ pub enum StandardPattern {
     At { name : String, pattern : Box<StandardPattern> },
     Wildcard,
     If { pattern : Box<StandardPattern>, predicate : Box<Expr> },
+    StandardArray(StandardArrayPattern<StandardPattern>),
 }
 
 #[derive(Debug)]
@@ -57,6 +58,7 @@ pub enum ArrayPattern {
     At { name : String, pattern : Box<ArrayPattern> },
     Wildcard,
     If { pattern : Box<ArrayPattern>, predicate : Box<Expr> },
+    StandardArray(StandardArrayPattern<ArrayPattern>),
 }
 
 #[derive(Debug)]

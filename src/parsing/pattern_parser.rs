@@ -206,20 +206,69 @@ pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError
     Ok(PathPattern::If { pattern: Box::new(pattern), predicate })
 }
 
-pub fn parse_standard_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, _input : &mut Input) -> Result<StandardPattern, ParseError> {
-    /* TODO: 
-           number
-           bool
-           variable
-           Cons(p*)
-           x @ p
-           p if bool-expr
-           _
-           []
-           [p, p, p]
-           [p | p] (tail)
-    */
-    fail("TODO")
+pub fn parse_standard_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<StandardPattern, ParseError> {
+    fn parse_number_pattern(_ : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<StandardPattern, ParseError> {
+        into(input, parse_number, |n| StandardPattern::Number(n))
+    }
+    
+    fn parse_bool_pattern(_ : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<StandardPattern, ParseError> {
+        into(input, parse_bool, |b| StandardPattern::Bool(b))
+    }
+
+    fn parse_var_pattern(_ : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<StandardPattern, ParseError> {
+        into(input, parse_variable, |v| StandardPattern::Variable(v))
+    }
+
+    fn parse_cons_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<StandardPattern, ParseError> {
+        into(input, |i| parse_constructor(|x| parse_standard_pattern(parse_expr, x), i), |(name, params)| StandardPattern::Cons{name, params})
+    }
+
+    fn parse_at_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<StandardPattern, ParseError> {
+        into(input, |i| parse_at(|x| parse_standard_pattern(parse_expr, x), i), |(name, pattern)| StandardPattern::At{name, pattern})
+    }
+
+    fn parse_wildcard_pattern(_ : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<StandardPattern, ParseError> {
+        punct(input, "_")?;
+        Ok(StandardPattern::Wildcard)
+    }
+
+    fn parse_path_standard_array_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<StandardPattern, ParseError> {
+        into(input, |i| parse_standard_array(|x| parse_standard_pattern(parse_expr, x), i), |array| StandardPattern::StandardArray(array))
+    }
+
+    let ps = [ parse_number_pattern
+             , parse_bool_pattern
+             , parse_cons_pattern
+             , parse_at_pattern
+             , parse_wildcard_pattern
+             , parse_path_standard_array_pattern
+             , parse_var_pattern// This should probably be last to avoid eating up keywords, etc
+             ];
+
+    let mut pattern = None;
+    
+    for p in ps {
+        match p(parse_expr, input) {
+            Ok(e) => { pattern = Some(e); break; },
+            e @ Err(ParseError::Fatal(_)) => return e,
+            _ => { },
+        }
+    }
+
+    let pattern = match pattern {
+        Some(pattern) => pattern, 
+        None => return Err(ParseError::Error),
+    };
+
+    match keyword(input, "if") {
+        Ok(_) => { },
+        Err(ParseError::Error) => return Ok(pattern),
+        Err(e @ ParseError::Fatal(_)) => return Err(e),
+    }
+
+    let predicate = Box::new(fatal(parse_expr(input), "pattern must have expression after if")?);
+
+    Ok(StandardPattern::If { pattern: Box::new(pattern), predicate })
 }
 
 pub fn parse_array_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, _input : &mut Input) -> Result<ArrayPattern, ParseError> { // TODO maybe pass in parse_expr ?
