@@ -19,6 +19,7 @@ use crate::ast::{ Expr
                 , StandardPattern
                 , PathPattern
                 , ArrayPattern
+                , StandardArrayPattern
                 };
 
 fn parse_variable(input : &mut Input) -> Result<String, ParseError> {
@@ -77,6 +78,43 @@ fn parse_at<T, F : Fn(&mut Input) -> Result<T, ParseError>>(p : F, input : &mut 
 }
 
 // TODO:  NOTE:  parse_series( ..., [, | ) // tada
+fn parse_standard_array<P, F>( parser : F, input : &mut Input) -> Result<StandardArrayPattern<P>, ParseError> 
+    where F : Fn(&mut Input) -> Result<P, ParseError> {
+
+    punct(input, "[")?;
+
+    match punct(input, "]") {
+        Ok(_) => return Ok(StandardArrayPattern::Empty),
+        Err(ParseError::Error) => { },
+        Err(e @ ParseError::Fatal(_)) => return Err(e),
+    }
+
+    let mut items = vec![];
+
+    loop {
+        let item = fatal(parser(input), "standard array pattern must have patterns after [")?;
+        items.push(item);
+
+        match punct(input, ",") {
+            Ok(_) => continue,
+            Err(ParseError::Error) => { },
+            Err(e @ ParseError::Fatal(_)) => return Err(e),
+        }
+
+        break match punct(input, "|") {
+            Ok(_) => {
+                let rest = Some(Box::new(fatal(parser(input), "standard array pattern must have rest pattern after |")?));
+                fatal(punct(input, "]"), "end of standard array pattern must be ]")?;
+                Ok(StandardArrayPattern::Array{ items, rest })
+            },
+            Err(ParseError::Error) => {
+                fatal(punct(input, "]"), "end of standard array pattern must be ]")?;
+                Ok(StandardArrayPattern::Array{ items, rest: None})
+            },
+            Err(e @ ParseError::Fatal(_)) => Err(e),
+        };
+    }
+}
 
 pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<PathPattern, ParseError> {
     fn parse_number_pattern(_ : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<PathPattern, ParseError> {
