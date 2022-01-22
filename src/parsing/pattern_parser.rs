@@ -295,6 +295,105 @@ mod test {
     use super::*;
 
     #[test]
+    fn standard_pattern_var_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("a");
+        let result = parse_standard_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, StandardPattern::Variable(_) ) );
+        // TODO add more details 
+        Ok(())
+    }
+    
+    #[test]
+    fn standard_pattern_number_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("100");
+        let result = parse_standard_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, StandardPattern::Number(_) ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn standard_pattern_bool_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("true");
+        let result = parse_standard_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, StandardPattern::Bool(_) ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn standard_pattern_cons_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("Cons(A, A)");
+        let result = parse_standard_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, StandardPattern::Cons { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn standard_pattern_at_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("x @ Cons(A, A)");
+        let result = parse_standard_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, StandardPattern::At { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn standard_pattern_at_should_parse_recursive() -> Result<(), ParseError> {
+        let mut input = Input::new("x @ y @ Cons(A, A)");
+        let result = parse_standard_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, StandardPattern::At { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn standard_pattern_wildcard_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("_");
+        let result = parse_standard_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, StandardPattern::Wildcard ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn standard_pattern_if_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("x if true");
+        let result = parse_standard_pattern(|i| Ok(Expr::Bool(true)), &mut input)?;
+        assert!( matches!( result, StandardPattern::If {..} ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn standard_pattern_standard_array_should_parse_empty() -> Result<(), ParseError> {
+        let mut input = Input::new("[]");
+        let result = parse_standard_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, StandardPattern::StandardArray{..} ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn standard_pattern_standard_array_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("[x, y, z]");
+        let result = parse_standard_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, StandardPattern::StandardArray{..} ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn standard_pattern_standard_array_should_parse_with_rest() -> Result<(), ParseError> {
+        let mut input = Input::new("[x, y, z | r]");
+        let result = parse_standard_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, StandardPattern::StandardArray{..} ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
     fn path_pattern_var_should_parse() -> Result<(), ParseError> {
         let mut input = Input::new("a");
         let result = parse_path_pattern(|i| Err(ParseError::Error), &mut input)?;
