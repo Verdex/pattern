@@ -8,7 +8,6 @@ use super::util::{ into
                  , punct
                  , maybe
                  , fatal
-                 , fail
                  };
 use crate::ast::{ Expr
                 , StandardPattern
