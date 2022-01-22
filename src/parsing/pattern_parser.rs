@@ -206,7 +206,7 @@ pub fn parse_path_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError
         Err(e @ ParseError::Fatal(_)) => return Err(e),
     }
 
-    let predicate = fatal(parse_expr(input), "pattern must have expression after if")?;
+    let predicate = Box::new(fatal(parse_expr(input), "pattern must have expression after if")?);
 
     Ok(PathPattern::If { pattern: Box::new(pattern), predicate })
 }

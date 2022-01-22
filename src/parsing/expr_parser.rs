@@ -15,6 +15,7 @@ use super::util::{ into
                  , fail
                  };
 use super::type_parser::parse_type;
+use super::pattern_parser::{parse_path_pattern};
 use crate::ast::{ Expr
                 , Type
                 , FunParam
@@ -129,6 +130,10 @@ pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
 
     fn parse_array_expr(input : &mut Input) -> Result<Expr, ParseError> {
         into(input, |i| parse_array(parse_expr, i), |es| Expr::Array(es))
+    }
+
+    fn parse_path_pattern_expr(input : &mut Input) -> Result<Expr, ParseError> {
+        into(input, |i| parse_path_pattern(parse_expr, i), |p| Expr::PathPattern(p))
     }
 
     let ps = [ parse_bool_expr
