@@ -14,7 +14,7 @@ use super::util::{ into
                  , fail
                  };
 use super::type_parser::parse_type;
-use super::pattern_parser::{parse_path_pattern};
+use super::pattern_parser::{parse_path_pattern, parse_array_pattern, parse_standard_pattern};
 use crate::ast::{ Expr
                 , Type
                 , FunParam
@@ -127,11 +127,21 @@ pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
     fn parse_path_pattern_expr(input : &mut Input) -> Result<Expr, ParseError> {
         into( input
             , |j| parse_series( |i| parse_path_pattern(parse_expr, i)
-                            , "{|"
-                            , "|}"
-                            , j
-                            )
-            , |paths| Expr::PathPattern(paths))
+                              , "{|"
+                              , "|}"
+                              , j
+                              )
+            , |patterns| Expr::PathPattern(patterns))
+    }
+
+    fn parse_array_pattern_expr(input : &mut Input) -> Result<Expr, ParseError> {
+        into( input
+            , |j| parse_series( |i| parse_array_pattern(parse_expr, i)
+                              , "[|"
+                              , "|]"
+                              , j
+                              )
+            , |patterns| Expr::ArrayPattern(patterns))
     }
 
     let ps = [ parse_bool_expr
@@ -141,6 +151,7 @@ pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
              , parse_lambda
              , parse_array_expr
              , parse_path_pattern_expr 
+             , parse_array_pattern_expr
 
              , parse_variable_expr // This should probably be last to avoid eating up keywords, etc
              ];
@@ -163,7 +174,6 @@ pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
     // TODO:  Will need to figure out how to do after expressions (like . and ())
 
     /* TODO :
-            [|p, p, p|]
             match e {
                 p => e,
                 p => e,

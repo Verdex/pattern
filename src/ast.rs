@@ -20,6 +20,7 @@ pub enum Expr {
     Lambda { params : Vec<FunParam>, return_type : Option<Type>, expr : Box<Expr> },
     Array(Vec<Expr>),
     PathPattern(Vec<PathPattern>),
+    ArrayPattern(Vec<ArrayPattern>),
 }
 
 #[derive(Debug)]
