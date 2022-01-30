@@ -11,6 +11,12 @@ pub struct FunParam {
 }
 
 #[derive(Debug)]
+pub struct Case {
+    pub pattern : StandardPattern,
+    pub expr : Expr,
+}
+
+#[derive(Debug)]
 pub enum Expr {
     Number(i64),
     Bool(bool),
@@ -18,6 +24,7 @@ pub enum Expr {
     Cons { name : String, params : Vec<Expr> },
     Let { name : String, t : Option<Type>, value : Box<Expr>, expr : Box<Expr> },
     Lambda { params : Vec<FunParam>, return_type : Option<Type>, expr : Box<Expr> },
+    Match { expr : Box<Expr>, cases : Vec<Case> },
     Array(Vec<Expr>),
     PathPattern(Vec<PathPattern>),
     ArrayPattern(Vec<ArrayPattern>),

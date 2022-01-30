@@ -16,6 +16,7 @@ use super::util::{ into
 use super::type_parser::parse_type;
 use super::pattern_parser::{parse_path_pattern, parse_array_pattern, parse_standard_pattern};
 use crate::ast::{ Expr
+                , Case
                 , Type
                 , FunParam
                 };
@@ -118,6 +119,20 @@ fn parse_lambda(input : &mut Input) -> Result<Expr, ParseError> {
     Ok(Expr::Lambda { params, return_type, expr })
 }
 
+fn parse_match(input : &mut Input) -> Result<Expr, ParseError> {
+    fn parse_case(input : &mut Input) -> Result<Case, ParseError> {
+        let pattern = parse_standard_pattern(parse_expr, input)?;
+        fatal(punct(input, "=>"), "pattern case must have an => after a pattern")?;
+        let expr = fatal(parse_expr(input), "pattern case must have an expr")?;
+        Ok(Case { pattern, expr })
+    }
+
+    keyword(input, "match")?;
+    let expr = Box::new(fatal(parse_expr(input), "match statements must have an expression")?);
+    let cases = fatal(parse_series(parse_case, "{", "}", input), "match statements must have case body")?;
+    Ok(Expr::Match{ expr, cases })
+}
+
 pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
 
     fn parse_array_expr(input : &mut Input) -> Result<Expr, ParseError> {
@@ -152,6 +167,7 @@ pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
              , parse_array_expr
              , parse_path_pattern_expr 
              , parse_array_pattern_expr
+             , parse_match
 
              , parse_variable_expr // This should probably be last to avoid eating up keywords, etc
              ];
@@ -174,11 +190,6 @@ pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
     // TODO:  Will need to figure out how to do after expressions (like . and ())
 
     /* TODO :
-            match e {
-                p => e,
-                p => e,
-                p => e,
-            }
 
             x(y, z)
             y.x(z)
