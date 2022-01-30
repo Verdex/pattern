@@ -164,7 +164,6 @@ pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
 
     /* TODO :
             [|p, p, p|]
-            {|p, p, p|}
             match e {
                 p => e,
                 p => e,
