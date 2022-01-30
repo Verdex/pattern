@@ -12,7 +12,7 @@ pub fn into<T, A, FParser : Fn(&mut Input) -> Result<T, ParseError>, FMap : Fn(T
     }
 }
 
-pub fn parse_junk(input : &mut Input) -> Result<(), ParseError> {
+fn parse_junk(input : &mut Input) -> Result<(), ParseError> {
 
     let mut comment = false;
 

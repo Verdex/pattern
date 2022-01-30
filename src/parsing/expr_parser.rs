@@ -1,7 +1,6 @@
 
 use super::input::{Input, ParseError};
 use super::util::{ into
-                 , parse_junk
                  , parse_series
                  , parse_array
                  , parse_params
@@ -23,13 +22,9 @@ use crate::ast::{ Expr
 
 fn parse_let(input : &mut Input) -> Result<Expr, ParseError> {
     fn colon_and_type(input : &mut Input) -> Result<Type, ParseError> {
-        parse_junk(input)?;
         punct(input, ":")?;
-        parse_junk(input)?;
         parse_type(input)
     }
-
-    parse_junk(input)?;
 
     keyword(input, "let")?;
     

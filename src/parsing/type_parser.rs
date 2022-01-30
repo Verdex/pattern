@@ -1,7 +1,6 @@
 
 use super::input::{Input, ParseError};
-use super::util::{ parse_junk
-                 , parse_symbol
+use super::util::{ parse_symbol
                  , parse_params
                  , keyword
                  , punct
@@ -45,8 +44,6 @@ fn parse_concrete_type(input : &mut Input) -> Result<Type, ParseError> {
 }
 
 fn parse_fun_type(input : &mut Input) -> Result<Type, ParseError> {
-    parse_junk(input)?;
-
     keyword(input, "fun")?;
 
     let i = fatal(parse_params(parse_type, input), "fun type must have param list")?;
@@ -59,7 +56,6 @@ fn parse_fun_type(input : &mut Input) -> Result<Type, ParseError> {
 }
 
 fn parse_array_type(input : &mut Input) -> Result<Type, ParseError> {
-    parse_junk(input)?;
     punct(input, "[")?;
     let t = Box::new(fatal(parse_type(input), "array type must have type")?);
     fatal(punct(input, "]"), "array type must have closing ']'")?;

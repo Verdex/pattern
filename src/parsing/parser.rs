@@ -1,8 +1,7 @@
 
 use crate::ast::Ast;
 use super::input::{Input, ParseError};
-use super::util::{ parse_junk
-                 , parse_symbol
+use super::util::{ parse_symbol
                  , keyword
                  , punct
                  , fatal
@@ -21,7 +20,6 @@ pub fn parse(input : &str) -> Result<Ast, ParseError> {
 }
 
 fn parse_fun_def(input : &mut Input) -> Result<Ast, ParseError> {
-    parse_junk(input)?;
 
     keyword(input, "fun")?;
 
