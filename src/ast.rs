@@ -19,7 +19,7 @@ pub enum Expr {
     Let { name : String, t : Option<Type>, value : Box<Expr>, expr : Box<Expr> },
     Lambda { params : Vec<FunParam>, return_type : Option<Type>, expr : Box<Expr> },
     Array(Vec<Expr>),
-    PathPattern(PathPattern),
+    PathPattern(Vec<PathPattern>),
 }
 
 #[derive(Debug)]

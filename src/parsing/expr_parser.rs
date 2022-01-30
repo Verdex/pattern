@@ -125,8 +125,13 @@ pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
     }
 
     fn parse_path_pattern_expr(input : &mut Input) -> Result<Expr, ParseError> {
-        // TODO this needs the whole {|p, p, p|} thing setup!
-        into(input, |i| parse_path_pattern(parse_expr, i), |p| Expr::PathPattern(p))
+        into( input
+            , |j| parse_series( |i| parse_path_pattern(parse_expr, i)
+                            , "{|"
+                            , "|}"
+                            , j
+                            )
+            , |paths| Expr::PathPattern(paths))
     }
 
     let ps = [ parse_bool_expr
