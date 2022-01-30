@@ -57,6 +57,8 @@ pub enum ArrayPattern {
     Cons { name : String, params : Vec<ArrayPattern> },
     At { name : String, pattern : Box<ArrayPattern> },
     Wildcard,
+    WildcardZeroOrMore,
+    WildcardN(Box<Expr>),
     If { pattern : Box<ArrayPattern>, predicate : Box<Expr> },
     StandardArray(StandardArrayPattern<ArrayPattern>),
 }

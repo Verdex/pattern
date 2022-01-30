@@ -231,7 +231,7 @@ pub fn parse_standard_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseE
         Ok(StandardPattern::Wildcard)
     }
 
-    fn parse_path_standard_array_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<StandardPattern, ParseError> {
+    fn parse_standard_standard_array_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<StandardPattern, ParseError> {
         into(input, |i| parse_standard_array(|x| parse_standard_pattern(parse_expr, x), i), |array| StandardPattern::StandardArray(array))
     }
 
@@ -240,7 +240,7 @@ pub fn parse_standard_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseE
              , parse_cons_pattern
              , parse_at_pattern
              , parse_wildcard_pattern
-             , parse_path_standard_array_pattern
+             , parse_standard_standard_array_pattern
              , parse_var_pattern// This should probably be last to avoid eating up keywords, etc
              ];
 
@@ -291,12 +291,24 @@ pub fn parse_array_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseErro
         into(input, |i| parse_at(|x| parse_array_pattern(parse_expr, x), i), |(name, pattern)| ArrayPattern::At{name, pattern})
     }
 
+    fn parse_wildcard_zero_or_more_pattern(_ : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<ArrayPattern, ParseError> {
+        punct(input, "_*")?;
+        Ok(ArrayPattern::WildcardZeroOrMore)
+    }
+
+    fn parse_wildcard_n_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<ArrayPattern, ParseError> {
+        punct(input, "_{")?;
+        let expr = Box::new(fatal(parse_expr(input), "wildcard N pattern must have expression")?);
+        fatal(punct(input, "}"), "wildcard N pattern must have ending }")?;
+        Ok(ArrayPattern::WildcardN(expr))
+    }
+
     fn parse_wildcard_pattern(_ : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<ArrayPattern, ParseError> {
         punct(input, "_")?;
         Ok(ArrayPattern::Wildcard)
     }
 
-    fn parse_path_standard_array_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<ArrayPattern, ParseError> {
+    fn parse_array_standard_array_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseError>, input : &mut Input) -> Result<ArrayPattern, ParseError> {
         into(input, |i| parse_standard_array(|x| parse_array_pattern(parse_expr, x), i), |array| ArrayPattern::StandardArray(array))
     }
 
@@ -304,8 +316,10 @@ pub fn parse_array_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseErro
              , parse_bool_pattern
              , parse_cons_pattern
              , parse_at_pattern
+             , parse_wildcard_zero_or_more_pattern // Needs order: _*, _{Expr<N>}, _
+             , parse_wildcard_n_pattern
              , parse_wildcard_pattern
-             , parse_path_standard_array_pattern
+             , parse_array_standard_array_pattern
              , parse_var_pattern// This should probably be last to avoid eating up keywords, etc
              ];
 
@@ -333,16 +347,128 @@ pub fn parse_array_pattern(parse_expr : fn(&mut Input) -> Result<Expr, ParseErro
     let predicate = Box::new(fatal(parse_expr(input), "pattern must have expression after if")?);
 
     Ok(ArrayPattern::If { pattern: Box::new(pattern), predicate })
-
-    /* TODO: 
-           _{number-expr}
-           _* 
-    */
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn array_pattern_var_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("a");
+        let result = parse_array_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, ArrayPattern::Variable(_) ) );
+        // TODO add more details 
+        Ok(())
+    }
+    
+    #[test]
+    fn array_pattern_number_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("100");
+        let result = parse_array_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, ArrayPattern::Number(_) ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn array_pattern_bool_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("true");
+        let result = parse_array_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, ArrayPattern::Bool(_) ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn array_pattern_cons_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("Cons(A, A)");
+        let result = parse_array_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, ArrayPattern::Cons { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn array_pattern_at_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("x @ Cons(A, A)");
+        let result = parse_array_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, ArrayPattern::At { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn array_pattern_at_should_parse_recursive() -> Result<(), ParseError> {
+        let mut input = Input::new("x @ y @ Cons(A, A)");
+        let result = parse_array_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, ArrayPattern::At { .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn array_pattern_wildcard_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("_");
+        let result = parse_array_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, ArrayPattern::Wildcard ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn array_pattern_wildcard_zero_or_more_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("_*");
+        let result = parse_array_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, ArrayPattern::WildcardZeroOrMore ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn array_pattern_wildcard_n_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("_{N}");
+        let result = parse_array_pattern(|i| { i.next()?; Ok(Expr::Number(8)) }, &mut input)?;
+        assert!( matches!( result, ArrayPattern::WildcardN(_)) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn array_pattern_if_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("x if true");
+        let result = parse_array_pattern(|i| Ok(Expr::Bool(true)), &mut input)?;
+        assert!( matches!( result, ArrayPattern::If {..} ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn array_pattern_standard_array_should_parse_empty() -> Result<(), ParseError> {
+        let mut input = Input::new("[]");
+        let result = parse_array_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, ArrayPattern::StandardArray{..} ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn array_pattern_standard_array_should_parse() -> Result<(), ParseError> {
+        let mut input = Input::new("[x, y, z]");
+        let result = parse_array_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, ArrayPattern::StandardArray{..} ) );
+        // TODO add more details 
+        Ok(())
+    }
+
+    #[test]
+    fn array_pattern_standard_array_should_parse_with_rest() -> Result<(), ParseError> {
+        let mut input = Input::new("[x, y, z | r]");
+        let result = parse_array_pattern(|i| Err(ParseError::Error), &mut input)?;
+        assert!( matches!( result, ArrayPattern::StandardArray{..} ) );
+        // TODO add more details 
+        Ok(())
+    }
 
     #[test]
     fn standard_pattern_var_should_parse() -> Result<(), ParseError> {
