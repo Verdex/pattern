@@ -24,6 +24,23 @@ pub fn parse(input : &str) -> Result<Ast, ParseError> {
 }
 
 fn parse_fun_def(input : &mut Input) -> Result<Ast, ParseError> {
+    fn parse_fun_name(input : &mut Input) -> Result<String, ParseError> {
+        let rp = input.clone();
+
+        let sym = parse_symbol(input)?;
+
+        let first = sym.chars().nth(0)
+            .expect("parse_fun_def parse_symbol somehow returned zero length string");
+
+        if first.is_lowercase() {
+            Ok(sym)
+        }
+        else {
+            input.restore(rp);
+            Err(ParseError::Error)
+        }
+    }
+
     fn params(input : &mut Input) -> Result<FunParam, ParseError> {
         let name = parse_symbol(input)?;
         fatal(punct(input, ":"), "fun parameter needs :")?;
@@ -33,7 +50,7 @@ fn parse_fun_def(input : &mut Input) -> Result<Ast, ParseError> {
 
     keyword(input, "fun")?;
 
-    let name = fatal(parse_symbol(input), "fun must have a name")?;
+    let name = fatal(parse_fun_name(input), "fun must have a name")?;
 
     let params = fatal(parse_params(|i| params(i), input), "fun must have parameters")?;
 
@@ -48,6 +65,35 @@ fn parse_fun_def(input : &mut Input) -> Result<Ast, ParseError> {
     fatal(punct(input, ";"), "fun must have an ending ';'")?;
 
     Ok(Ast::FunDef { name, params, return_type, expr })
+}
+
+fn parse_data_def(input : &mut Input) -> Result<Ast, ParseError> {
+    fn parse_type_name(input : &mut Input) -> Result<String, ParseError> {
+        let rp = input.clone();
+
+        let sym = parse_symbol(input)?;
+
+        let first = sym.chars().nth(0)
+            .expect("parse_type_name parse_symbol somehow returned zero length string");
+
+        if first.is_uppercase() {
+            Ok(sym)
+        }
+        else {
+            input.restore(rp);
+            Err(ParseError::Error)
+        }
+    }
+
+    keyword(input, "data")?;
+
+    let name = fatal(parse_type_name(input), "data definition must have a name")?;
+
+    fatal(punct(input, "="), "data definition must have a =")?;
+
+    // TODO:  parse_type_name optional ( type ) | or ; loop
+
+    fail("TODO")
 }
 
 fn parse_top_level(input : &mut Input) -> Result<Ast, ParseError> {
@@ -72,7 +118,6 @@ fn parse_top_level(input : &mut Input) -> Result<Ast, ParseError> {
 
     /* TODO :
              data X = A | B(C, D) ;
-             data X<A, B, C> = A | B| C ;
     */
 }
 
