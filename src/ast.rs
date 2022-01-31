@@ -25,6 +25,7 @@ pub enum Expr {
     Let { name : String, t : Option<Type>, value : Box<Expr>, expr : Box<Expr> },
     Lambda { params : Vec<FunParam>, return_type : Option<Type>, expr : Box<Expr> },
     Match { expr : Box<Expr>, cases : Vec<Case> },
+    FunCall { fun_expr : Box<Expr>, params : Vec<Expr> },
     Array(Vec<Expr>),
     PathPattern(Vec<PathPattern>),
     ArrayPattern(Vec<ArrayPattern>),

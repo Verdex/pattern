@@ -182,19 +182,38 @@ pub fn parse_expr(input : &mut Input) -> Result<Expr, ParseError> {
         }
     }
 
-    match expr {
-        Some(expr) => Ok(expr), 
-        None => Err(ParseError::Error),
+    let mut ret = match expr {
+        Some(expr) => expr, 
+        None => return Err(ParseError::Error),
+    };
+
+    loop {
+        match parse_params(parse_expr, input) {
+            Ok(params) => 
+            { 
+                let temp = Expr::FunCall { fun_expr : Box::new(ret), params };
+                ret = temp;
+                continue;
+            },
+            Err(ParseError::Error) => { },
+            Err(e @ ParseError::Fatal(_)) => return Err(e),
+        }
+
+        match punct(input, ".") {
+            Ok(_) => {
+                let name = Box::new(Expr::Variable(fatal(parse_symbol(input), "there must exist a symbol after .")?));
+
+                let mut params = fatal(parse_params(parse_expr, input), "dot function must have parameter list")?;
+
+                params.insert(0, ret);
+
+                let temp = Expr::FunCall { fun_expr : name, params };
+                ret = temp;
+            },
+            Err(ParseError::Error) => return Ok(ret),
+            Err(e @ ParseError::Fatal(_)) => return Err(e),
+        }
     }
-
-    // TODO:  Will need to figure out how to do after expressions (like . and ())
-
-    /* TODO :
-
-            x(y, z)
-            y.x(z)
-
-    */
 }
 
 #[cfg(test)]
