@@ -11,7 +11,6 @@ use super::util::{ into
                  , punct
                  , maybe
                  , fatal
-                 , fail
                  };
 use super::type_parser::parse_type;
 use super::pattern_parser::{parse_path_pattern, parse_array_pattern, parse_standard_pattern};
