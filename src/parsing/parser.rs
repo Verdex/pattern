@@ -52,9 +52,6 @@ fn parse_fun_def(input : &mut Input) -> Result<Ast, ParseError> {
 
 fn parse_top_level(input : &mut Input) -> Result<Ast, ParseError> {
 
-    // TODO this needs to get all top level items and not just the first one
-    // maybe make that happen in the parse function?
-
     let ps = [ parse_fun_def 
              ];
 
@@ -76,7 +73,6 @@ fn parse_top_level(input : &mut Input) -> Result<Ast, ParseError> {
     /* TODO :
              data X = A | B(C, D) ;
              data X<A, B, C> = A | B| C ;
-             fun x(a : T, b : T, c : T) -> T = e ;
     */
 }
 
