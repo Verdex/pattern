@@ -1,7 +1,7 @@
 
 #[derive(Debug)]
 pub enum Ast {
-
+    FunDef { name : String, params : Vec<FunParam>, return_type : Type, expr : Expr }
 }
 
 #[derive(Debug)]

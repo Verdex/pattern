@@ -1,12 +1,16 @@
 
-use crate::ast::Ast;
+use crate::ast::{ Ast
+                , FunParam
+                };
 use super::input::{Input, ParseError};
 use super::util::{ parse_symbol
+                 , parse_params
                  , keyword
                  , punct
                  , fatal
                  , fail
                  };
+use super::type_parser::parse_type;
 use super::expr_parser::parse_expr;
 
 pub fn parse(input : &str) -> Result<Ast, ParseError> {
@@ -20,20 +24,30 @@ pub fn parse(input : &str) -> Result<Ast, ParseError> {
 }
 
 fn parse_fun_def(input : &mut Input) -> Result<Ast, ParseError> {
+    fn params(input : &mut Input) -> Result<FunParam, ParseError> {
+        let name = parse_symbol(input)?;
+        fatal(punct(input, ":"), "fun parameter needs :")?;
+        let t = Some(fatal(parse_type(input), "fun parameter needs types")?);
+        Ok(FunParam{ name, t })
+    }
 
     keyword(input, "fun")?;
 
-    let _name = fatal(parse_symbol(input), "fun must have a name")?;
+    let name = fatal(parse_symbol(input), "fun must have a name")?;
 
-    fatal(punct(input, "("), "fun must have a beginning '('")?;
+    let params = fatal(parse_params(|i| params(i), input), "fun must have parameters")?;
 
-    // TODO ...
+    fatal(punct(input, "->"), "fun must have ->")?;
 
-    let _expr = fatal(parse_expr(input), "fun must have an expr")?;
+    let return_type = fatal(parse_type(input), "fun must have type")?;
+
+    fatal(punct(input, "="), "fun must have =")?;
+
+    let expr = fatal(parse_expr(input), "fun must have an expr")?;
 
     fatal(punct(input, ";"), "fun must have an ending ';'")?;
 
-    fail("TODO")
+    Ok(Ast::FunDef { name, params, return_type, expr })
 }
 
 fn parse_top_level(input : &mut Input) -> Result<Ast, ParseError> {
