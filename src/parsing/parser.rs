@@ -159,4 +159,26 @@ fn parse_top_level(input : &mut Input) -> Result<Ast, ParseError> {
 mod test {
     use super::*;
 
+    #[test]
+    fn should_parse_function() -> Result<(), ParseError> {
+        let result = parse("
+            fun name ( a : T, b : T ) -> Number = 8;
+        ")?;
+
+        assert_eq!( result.len(), 1 );
+        assert!( matches!( result[0], Ast::FunDef { .. } ) );
+        Ok(())
+    }
+
+    #[test]
+    fn should_parse_data() -> Result<(), ParseError> {
+        let result = parse("
+            data X = H(X, Number) | Nil;
+        ")?;
+
+        assert_eq!( result.len(), 1 );
+        assert!( matches!( result[0], Ast::DataDef { .. } ) );
+        Ok(())
+    }
+
 }
