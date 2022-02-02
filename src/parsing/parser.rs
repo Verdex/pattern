@@ -1,11 +1,13 @@
 
 use crate::ast::{ Ast
                 , FunParam
+                , ConsDef
                 };
 use super::input::{Input, ParseError};
 use super::util::{ parse_symbol
                  , parse_params
                  , keyword
+                 , maybe
                  , punct
                  , fatal
                  , fail
@@ -68,6 +70,38 @@ fn parse_fun_def(input : &mut Input) -> Result<Ast, ParseError> {
 }
 
 fn parse_data_def(input : &mut Input) -> Result<Ast, ParseError> {
+    fn parse_cons_def(input : &mut Input) -> Result<ConsDef, ParseError> {
+        let name = parse_type_name(input)?;
+        match maybe(parse_params(parse_type, input))? {
+            Some(params) => Ok(ConsDef { name, params }),
+            None => Ok(ConsDef { name, params: vec![] }),
+        }
+    }
+    
+    fn parse_cons_defs(input : &mut Input) -> Result<Vec<ConsDef>, ParseError> {
+        match punct(input, ";") {
+            Ok(_) => return Ok(vec![]),
+            Err(ParseError::Error) => { },
+            Err(e @ ParseError::Fatal(_)) => return Err(e),
+        }
+        let mut ps = vec![];
+        loop {
+            ps.push(fatal(parse_cons_def(input), "data must have valid constructor definitions")?);
+            match punct(input, "|") {
+                Ok(_) => continue,
+                Err(ParseError::Error) => { },
+                Err(e @ ParseError::Fatal(_)) => return Err(e),
+            }
+            match punct(input, ";") {
+                Ok(_) => break,
+                Err(ParseError::Error) => return fail("data definition must end with ;"),
+                Err(e @ ParseError::Fatal(_)) => return Err(e),
+            }
+        }
+
+        Ok(ps)
+    }
+
     fn parse_type_name(input : &mut Input) -> Result<String, ParseError> {
         let rp = input.clone();
 
@@ -91,14 +125,15 @@ fn parse_data_def(input : &mut Input) -> Result<Ast, ParseError> {
 
     fatal(punct(input, "="), "data definition must have a =")?;
 
-    // TODO:  parse_type_name optional ( type ) | or ; loop
+    let cons_defs = fatal(parse_cons_defs(input), "data definition must have data defs")?;
 
-    fail("TODO")
+    Ok(Ast::DataDef{ name, cons_defs })
 }
 
 fn parse_top_level(input : &mut Input) -> Result<Ast, ParseError> {
 
     let ps = [ parse_fun_def 
+             , parse_data_def
              ];
 
     let mut tl = None;
@@ -115,10 +150,6 @@ fn parse_top_level(input : &mut Input) -> Result<Ast, ParseError> {
         Some(tl) => Ok(tl), 
         None => Err(ParseError::Error),
     }
-
-    /* TODO :
-             data X = A | B(C, D) ;
-    */
 }
 
 #[cfg(test)]

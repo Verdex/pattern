@@ -1,7 +1,14 @@
 
 #[derive(Debug)]
 pub enum Ast {
-    FunDef { name : String, params : Vec<FunParam>, return_type : Type, expr : Expr }
+    FunDef { name : String, params : Vec<FunParam>, return_type : Type, expr : Expr },
+    DataDef { name : String, cons_defs : Vec<ConsDef> },
+}
+
+#[derive(Debug)]
+pub struct ConsDef {
+    pub name : String,
+    pub params : Vec<Type>,
 }
 
 #[derive(Debug)]
