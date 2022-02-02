@@ -167,7 +167,7 @@ pub fn parse_series<T, F : Fn(&mut Input) -> Result<T, ParseError>>(p : F, start
         }
         match punct(input, end) {
             Ok(_) => break,
-            Err(ParseError::Error) => return fail("series items must have ending '{end}'"),
+            Err(ParseError::Error) => return fail(&format!("series items must have ending '{end}'")),
             Err(e @ ParseError::Fatal(_)) => return Err(e),
         }
     }
