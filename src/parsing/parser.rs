@@ -167,6 +167,7 @@ mod test {
 
         assert_eq!( result.len(), 1 );
         assert!( matches!( result[0], Ast::FunDef { .. } ) );
+        // TODO add more details
         Ok(())
     }
 
@@ -178,6 +179,7 @@ mod test {
 
         assert_eq!( result.len(), 1 );
         assert!( matches!( result[0], Ast::DataDef { .. } ) );
+        // TODO add more details
         Ok(())
     }
 
