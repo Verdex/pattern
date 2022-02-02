@@ -15,14 +15,18 @@ use super::util::{ parse_symbol
 use super::type_parser::parse_type;
 use super::expr_parser::parse_expr;
 
-pub fn parse(input : &str) -> Result<Ast, ParseError> {
+pub fn parse(input : &str) -> Result<Vec<Ast>, ParseError> {
     let mut input = Input::new(input);
 
-    // TODO get a list of top levels?
-    let _output = parse_top_level(&mut input);
+    let mut tls = vec![];
+    loop {
+        match parse_top_level(&mut input) {
+            Ok(tl) => tls.push(tl),
+            Err(ParseError::Error) => return Ok(tls),
+            Err(e @ ParseError::Fatal(_)) => return Err(e),
+        }
 
-
-    fail("TODO")
+    }
 }
 
 fn parse_fun_def(input : &mut Input) -> Result<Ast, ParseError> {
