@@ -25,7 +25,6 @@ pub fn parse(input : &str) -> Result<Vec<Ast>, ParseError> {
             Err(ParseError::Error) => return Ok(tls),
             Err(e @ ParseError::Fatal(_)) => return Err(e),
         }
-
     }
 }
 
