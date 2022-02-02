@@ -353,4 +353,16 @@ mod test {
         // TODO add more details 
         Ok(())
     }
+
+    #[test]
+    fn should_parse_match_with_multiple_cases() -> Result<(), ParseError> {
+        let mut input = Input::new("match 7 { 
+            x => x,
+            _ => 0
+        }");
+        let result = parse_expr(&mut input)?;
+        assert!( matches!( result, Expr::Match{ .. } ) );
+        // TODO add more details 
+        Ok(())
+    }
 }
