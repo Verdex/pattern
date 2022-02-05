@@ -4,8 +4,7 @@ mod parsing;
 
 /* TODO buildin functions:
 
-    print(e)
-    input() -> [number]
+    print(e) -> e
     eq(e, e)
     lt(number, number)
     gt(number, number)
