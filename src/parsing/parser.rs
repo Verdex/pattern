@@ -183,4 +183,20 @@ mod test {
         Ok(())
     }
 
+    #[test]
+    fn should_parse_simple_program() -> Result<(), ParseError> {
+        let result = parse("
+            data List = Cons( a, List<a> ) | Nil ;
+
+            fun sum( input : List<Number> ) -> Number = input.fold( 0, |a, n| a.add(n) ) ;
+
+        ")?;
+
+        assert_eq!( result.len(), 2 );
+        assert!( matches!( result[0], Ast::DataDef { .. } ) );
+        assert!( matches!( result[1], Ast::FunDef { .. } ) );
+        // TODO add more details
+        Ok(())
+    }
+
 }
