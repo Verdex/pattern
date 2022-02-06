@@ -22,12 +22,15 @@ mod parsing;
     match_all(pattern, array_expr)
     parse_all(pattern, array_expr)
     path(pattern, e)
+    // Probably want all list functions to take the list as their first parameter so that
+    // the dot operator makes chaining easy
     fold(fun(a, b) -> b, [a]) -> b
-    filter(fun(a) -> bool, [a]) -> [a]
+    filter(fun(a) -> bool, [a]) -> [a]   
     map(fun(a) -> b, [a]) -> [b]
     flatten([[a]]) -> [a]
     zip(fun(a, b) -> c, [a], [b]) -> [c]
     range(number, number) -> [number]
+    nth : [a] -> Number -> a
 
     
     anon types exist but are not parsable (atm)
