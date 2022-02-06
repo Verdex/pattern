@@ -24,11 +24,11 @@ mod parsing;
     path(pattern, e)
     // Probably want all list functions to take the list as their first parameter so that
     // the dot operator makes chaining easy
-    fold(fun(a, b) -> b, [a]) -> b
-    filter(fun(a) -> bool, [a]) -> [a]   
-    map(fun(a) -> b, [a]) -> [b]
+    fold([a], a, fun(a, b) -> b) -> b
+    filter([a], fun(a) -> bool) -> [a]   
+    map([a], fun(a) -> b) -> [b]
     flatten([[a]]) -> [a]
-    zip(fun(a, b) -> c, [a], [b]) -> [c]
+    zip([a], [b], fun(a, b) -> c) -> [c]
     range(number, number) -> [number]
     nth : [a] -> Number -> a
 
