@@ -38,5 +38,36 @@ mod parsing;
 fn main() {
     use parsing::parser;
 
+    // TODO top level data is going to need to be converted into the following structures:
+    // DataName -> [ConsTag * [type] ] // this will be needed to determine totality for match expr
+                                       // and the param type list is needed so we know what type the captured varaibles are
+    // ConsTag -> DataName // This will be needed to determine the type of a ConsExpr
+
+
+    /* TODO:   Types for verification will need:  
+                    Infer, 
+                    Generic, 
+                    Concrete, 
+                    function type, 
+                    array type, 
+                    index type, 
+                    anon object type
+
+    */
+
+
+    /* TODO:  At runtime we're looking at:
+                    Cons
+                    Let (lexical scope for variable lookup)
+                    Funcall
+                    if
+                    destructure
+                    closure
+                    data tag
+
+
+    */
+
+
     let _x = parser::parse("input");
 }
