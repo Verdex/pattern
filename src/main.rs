@@ -50,17 +50,6 @@ fn main() {
     // ConsTag -> DataName // This will be needed to determine the type of a ConsExpr
 
 
-    /* TODO:   Types for verification will need:  
-                    Infer, 
-                    Generic, 
-                    Concrete, 
-                    function type, 
-                    array type, 
-                    index type, 
-                    anon object type
-
-    */
-
 
     /* TODO:  At runtime we're looking at:
                     Cons
