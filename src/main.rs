@@ -4,7 +4,6 @@ mod parsing;
 mod ir;
 mod generation;
 
-use ast::Ast;
 /* TODO buildin functions:
 
     print(e) -> e
@@ -44,13 +43,6 @@ use ast::Ast;
 fn main() {
     use parsing::parser;
 
-    // TODO top level data is going to need to be converted into the following structures:
-    // DataName -> [ConsTag * [type] ] // this will be needed to determine totality for match expr
-                                       // and the param type list is needed so we know what type the captured varaibles are
-    // ConsTag -> DataName // This will be needed to determine the type of a ConsExpr
-
-
-
     /* TODO:  At runtime we're looking at:
                     Cons
                     Let (lexical scope for variable lookup)
@@ -70,16 +62,5 @@ fn main() {
 
 
     let asts = parser::parse("input");
-
-}
-
-fn blah( x : &Vec<Ast> ) {
-    let (datas, funcs) : (Vec<&Ast>, Vec<&Ast>) = x.iter().partition(|tl| match tl {
-        Ast::DataDef { .. } => true,
-        Ast::FunDef { .. } => false,
-        _ => panic!("Unknown top level item"),
-    });
-
-    let concrete_types = None; // TODO datas
 
 }
