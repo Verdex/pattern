@@ -2,6 +2,7 @@
 mod ast;
 mod parsing;
 
+use ast::Ast;
 /* TODO buildin functions:
 
     print(e) -> e
@@ -71,6 +72,23 @@ fn main() {
 
     */
 
+    // TODO:  Need to add some syntax to access anon object fields
+    // TODO:  I suppose you can hijack dot syntax.  
+    // {| Blah(!, a), Cons(b, c) |}.path( some_object ) => [{a,b,c}]
+    // Then funcall(a, {a,b,c}) => access a
 
-    let _x = parser::parse("input");
+
+    let asts = parser::parse("input");
+
+}
+
+fn blah( x : &Vec<Ast> ) {
+    let (datas, funcs) : (Vec<&Ast>, Vec<&Ast>) = x.iter().partition(|tl| match tl {
+        Ast::DataDef { .. } => true,
+        Ast::FunDef { .. } => false,
+        _ => panic!("Unknown top level item"),
+    });
+
+    let concrete_types = None; // TODO datas
+
 }
