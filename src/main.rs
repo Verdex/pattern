@@ -1,6 +1,8 @@
 
 mod ast;
 mod parsing;
+mod ir;
+mod generation;
 
 use ast::Ast;
 /* TODO buildin functions:
