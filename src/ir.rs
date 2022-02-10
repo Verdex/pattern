@@ -1,6 +1,7 @@
 
-#[derive(Debug)]
-pub struct ConsTag(String);
+
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct ConsTag(pub String);
 
 #[derive(Debug)]
 pub struct ConsInfo { 
@@ -14,8 +15,8 @@ pub struct RowType {
     pub t : Type,
  }
 
- #[derive(Debug)]
- pub struct ConcreteType(String);
+ #[derive(Debug, PartialEq, Eq, Hash)]
+ pub struct ConcreteType(pub String);
 
 #[derive(Debug)]
 pub enum Type {
