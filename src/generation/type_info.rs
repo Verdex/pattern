@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use crate::ast;
 use crate::ir;
 
-use super::data::{StaticError, self};
+use super::data::{StaticError};
 
     /*let (datas, funcs) : (Vec<&ast::Ast>, Vec<&ast::Ast>) = ast.iter().partition(|tl| match tl {
         ast::Ast::DataDef { .. } => true,
@@ -12,9 +12,27 @@ use super::data::{StaticError, self};
         _ => panic!("Unknown top level item"),
     });*/
 
-//fn type_map(ast::)
+fn ast_to_ir_type(t : ast::Type) -> ir::Type {
 
-fn determine_type_info( data_defs : &Vec<ast::Ast> ) 
+    use ast::Type as a;
+    use ir::Type as i;
+
+    fn m(ts : Vec<ast::Type>) -> Vec<ir::Type> {
+        ts.into_iter().map(ast_to_ir_type).collect()
+    }
+
+    let array = ir::ConcreteType("Array".to_string());
+
+    match t {
+        a::Generic(name) => i::Generic(name),
+        a::Concrete(name) => i::Concrete(ir::ConcreteType(name)),
+        a::Array(t) => i::Index { name: array.clone(), params: vec![ast_to_ir_type(*t)] },
+        a::Fun { input, output } => i::Fun { input: m(input), output: Box::new(ast_to_ir_type(*output)) },
+        a::Index { name, params } => i::Index { name: ir::ConcreteType(name), params: m(params) },
+    }
+}
+
+fn determine_type_info( data_defs : Vec<ast::Ast> ) 
     -> Result<( HashMap<ir::ConsTag, ir::ConcreteType>
        , HashMap<ir::ConcreteType, Vec<ir::ConsInfo>> ), StaticError> {
 
@@ -23,7 +41,7 @@ fn determine_type_info( data_defs : &Vec<ast::Ast> )
 
     for data_def in data_defs {
         let (concrete_type, cons_defs) = match data_def { 
-            ast::Ast::DataDef { name, cons_defs } => (ir::ConcreteType(name.clone()), cons_defs),
+            ast::Ast::DataDef { name, cons_defs } => (ir::ConcreteType(name), cons_defs),
             _ => panic!( "Encountered non DataDef variant"),
         };
 

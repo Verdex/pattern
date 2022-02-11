@@ -15,7 +15,7 @@ pub struct RowType {
     pub t : Type,
  }
 
- #[derive(Debug, PartialEq, Eq, Hash)]
+ #[derive(Debug, PartialEq, Eq, Hash, Clone)]
  pub struct ConcreteType(pub String);
 
 #[derive(Debug)]
@@ -24,6 +24,6 @@ pub enum Type {
     Generic(String),
     Concrete(ConcreteType),
     Fun { input : Vec<Type>, output : Box<Type> },
-    Index { name : String, params : Vec<Type> },
+    Index { name : ConcreteType, params : Vec<Type> },
     Anon(Vec<RowType>),
 }
