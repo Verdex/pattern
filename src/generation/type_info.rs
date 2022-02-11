@@ -50,18 +50,23 @@ fn determine_type_info( data_defs : Vec<ast::Ast> )
             return Err(StaticError::Fatal(format!("Encountered duplicate type name {ct}")));
         }
 
-        cons_defs.iter().map(|def| )
-
-        // TODO need all the cons tags out of cons_defs
-        // TODO need all of the cons infos out of cons_defs
-        // probably need copies because thy're going into two different hash maps
-
-
-        //cons_lookup.insert(concrete_type, )
+        let cons_infos : Vec<ir::ConsInfo> 
+            = cons_defs.into_iter()
+                       .map(|c| ir::ConsInfo{ tag: ir::ConsTag(c.name)
+                                            , ts: c.params.into_iter().map(ast_to_ir_type).collect()
+                                            } ).collect();
 
 
+        cons_lookup.insert(concrete_type.clone(), cons_infos.clone());
 
+        for info in cons_infos {
+            if type_lookup.contains_key(&info.tag) {
+                let ir::ConsTag(tag) = info.tag;
+                return Err(StaticError::Fatal(format!("Encountered duplicate constructor name {tag}")));
+            }
 
+            type_lookup.insert( info.tag, concrete_type.clone() );
+        }
     }
     
     Ok((type_lookup, cons_lookup))

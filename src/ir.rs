@@ -1,15 +1,15 @@
 
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct ConsTag(pub String);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ConsInfo { 
     pub tag : ConsTag,
     pub ts : Vec<Type>,
 }
 
-#[derive(Debug)] 
+#[derive(Debug, Clone)] 
 pub struct RowType { 
     pub name : String,
     pub t : Type,
@@ -18,7 +18,7 @@ pub struct RowType {
  #[derive(Debug, PartialEq, Eq, Hash, Clone)]
  pub struct ConcreteType(pub String);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Type {
     Infer, // TODO can this be removed?
     Generic(String),
