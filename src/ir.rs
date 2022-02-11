@@ -1,4 +1,7 @@
 
+pub struct Ir {
+
+}
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct ConsTag(pub String);
