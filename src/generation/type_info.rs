@@ -4,15 +4,9 @@ use std::collections::HashMap;
 use crate::ast;
 use crate::ir;
 
-use super::data::{StaticError};
+use super::data::StaticError;
 
-    /*let (datas, funcs) : (Vec<&ast::Ast>, Vec<&ast::Ast>) = ast.iter().partition(|tl| match tl {
-        ast::Ast::DataDef { .. } => true,
-        ast::Ast::FunDef { .. } => false,
-        _ => panic!("Unknown top level item"),
-    });*/
-
-fn ast_to_ir_type(t : ast::Type) -> ir::Type {
+pub fn ast_to_ir_type(t : ast::Type) -> ir::Type {
 
     use ast::Type as a;
     use ir::Type as i;
@@ -32,7 +26,7 @@ fn ast_to_ir_type(t : ast::Type) -> ir::Type {
     }
 }
 
-fn determine_type_info( data_defs : Vec<ast::Ast> ) 
+pub fn determine_type_info( data_defs : Vec<ast::Ast> ) 
     -> Result<( HashMap<ir::ConsTag, ir::ConcreteType>
        , HashMap<ir::ConcreteType, Vec<ir::ConsInfo>> ), StaticError> {
 

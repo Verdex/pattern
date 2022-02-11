@@ -42,6 +42,7 @@ mod generation;
 */
 fn main() {
     use parsing::parser;
+    use generation::generator;
 
     /* TODO:  At runtime we're looking at:
                     Cons
@@ -61,6 +62,7 @@ fn main() {
     // Then funcall(a, {a,b,c}) => access a
 
 
-    let asts = parser::parse("input");
+    let asts = parser::parse("input").unwrap(); // TODO handle err case
+    let _ir = generator::generate(asts);
 
 }
