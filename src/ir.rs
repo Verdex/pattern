@@ -4,6 +4,9 @@ pub struct Ir {
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
+pub struct Symbol(pub String);
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct ConsTag(pub String);
 
 #[derive(Debug, Clone)]
