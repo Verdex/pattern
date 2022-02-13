@@ -1,15 +1,24 @@
 
-use crate::ir::Symbol;
+use crate::ir::{Symbol, SlotAccessType};
 
 #[derive(Debug)]
 pub enum Instr {
-
+    MoveParameterToStack,
+    StoreRefFromReturnPointer { dest : usize },
+    StoreRefFromStack { src : usize, dest : usize },
+    StoreFunPointer { src : usize, dest : usize },
+    // After these instructions the VM needs to populate the rp
+    ConsNumber(i64),
+    ConsBool(bool),
+    CallFun(usize),
+    CallFunRefOnStack(usize), 
+    StackSlotAccess { src: usize, slot : SlotAccessType },
 }
 
 #[derive(Debug)]
 pub enum Ref {
-    Heap(usize),
-    Fun { fun_address : usize, environment_address : Option<usize> ),
+    Heap { address: usize, offset : SlotAccessType },
+    Fun { fun_address : usize, environment_address : Option<usize> },
 }
 
 #[derive(Debug)]

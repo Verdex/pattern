@@ -18,6 +18,12 @@ fn sym_gen(base : &str) -> Symbol {
 
 pub fn generate( asts : Vec<Ast> ) -> Result<Vec<Ir>, StaticError> {
 
+    /* TODO : no cycles
+              order resulting ir so that nothing references things that later show up
+              no duplicate symbol definitions
+    
+    */
+
     let (datas, funcs) : (Vec<Ast>, Vec<Ast>) = asts.into_iter().partition(|tl| match tl {
         Ast::DataDef { .. } => true,
         Ast::FunDef { .. } => false,

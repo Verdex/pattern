@@ -9,10 +9,16 @@ pub struct Ir {
 #[derive(Debug)]
 pub enum Statement {
     Assign { name : Symbol, expr : Box<Expr> },
-    If { test : Symbol, statements : Vec<Statement> },
+    BranchFalse(Symbol),
     Label(Symbol),
     Goto(Symbol),
     Return(Symbol),
+}
+
+#[derive(Debug)] 
+pub enum SlotAccessType {
+    Tag,
+    Index(usize),
 }
 
 #[derive(Debug)]
@@ -20,7 +26,7 @@ pub enum Expr {
     Number(i64),
     Bool(bool),
     Variable(Symbol),
-    SlotAccess { data : Symbol, slot : Symbol }, 
+    SlotAccess { data : Symbol, slot : SlotAccessType }, 
     FunCall { name : Symbol, params : Vec<Symbol> },
 }
 
