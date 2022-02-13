@@ -9,6 +9,7 @@ use super::type_info;
 
 static SYM_GEN_COUNT : AtomicUsize = AtomicUsize::new(0);
 
+// TODO every symbol from the ast needs to go through this
 fn sym_gen(base : &str) -> Symbol {
     let post_fix = SYM_GEN_COUNT.fetch_add(1, Ordering::Relaxed);
 
