@@ -9,7 +9,7 @@ pub struct Ir {
 #[derive(Debug)]
 pub enum Statement {
     Assign { name : Symbol, expr : Box<Expr> },
-    BranchFalse(Symbol),
+    BranchFalse { target: Symbol, dest : Symbol },
     Label(Symbol),
     Goto(Symbol),
     Return(Symbol),

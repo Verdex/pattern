@@ -67,11 +67,29 @@ fn ir_to_instr( irs : Vec<Ir> ) -> (Vec<Instr>, usize) {
                     }
 
                 },
-                _ => panic!(""),
-                /*Statement::BranchFalse(Symbol) => {},
-                Statement::Label(Symbol) => {},
-                Statement::Goto(Symbol) => {},
-                Statement::Return(Symbol) => {},*/
+                Statement::Label(name) => {
+                    symbol_to_fun_address.insert(name, instrs.len());
+                    instrs.push(Instr::Nop);
+                },
+                Statement::BranchFalse { target, dest } if symbol_to_fun_address.contains_key(&dest) 
+                                                        && symbol_to_relative_stack_address.contains_key(&target)
+                    => {
+
+                        let dest = symbol_to_fun_address.get(&dest).expect("Could not find function address for symbol");
+                        let rsa = symbol_to_relative_stack_address.get(&target).expect("Could not find relative stack address for symbol");
+
+                        instrs.push(Instr::BranchFalse { relative_stack_address: *rsa, instr_dest: *dest });
+                },
+                Statement::BranchFalse { .. } => panic!("Could not find function address or relative stack address for symbol"),
+                Statement::Goto(dest) => {
+                    let dest = symbol_to_fun_address.get(&dest).expect("Could not find function address for symbol");
+                    instrs.push(Instr::Goto { instr_dest: *dest });
+                },
+                Statement::Goto(dest) => panic!("Could not find function address for symbol"),
+                Statement::Return(name) => {
+                    let rsa = symbol_to_relative_stack_address.get(&name).expect("Could not find relative stack address for symbol");
+                    instrs.push(Instr::Return(*rsa));
+                },
             }
         }
     }
