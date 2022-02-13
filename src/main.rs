@@ -3,6 +3,7 @@ mod ast;
 mod parsing;
 mod ir;
 mod generation;
+mod execution;
 
 /* TODO buildin functions:
 
