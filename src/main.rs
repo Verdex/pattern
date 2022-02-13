@@ -64,6 +64,8 @@ fn main() {
 
 
     let asts = parser::parse("input").unwrap(); // TODO handle err case
-    let _ir = generator::generate(asts);
+    let ir = generator::generate(asts).unwrap(); // TODO handle err case
+
+    execution::vm::run(ir);
 
 }
