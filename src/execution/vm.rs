@@ -1,7 +1,7 @@
 
 use std::collections::HashMap;
 
-use crate::ir::{Ir, Statement, Expr};
+use crate::ir::{Ir, Statement, Expr, Symbol};
 
 use super::data::{Instr, Data, Ref};
 
@@ -12,8 +12,10 @@ fn ir_to_instr( irs : Vec<Ir> ) -> (Vec<Instr>, usize) {
     let mut symbol_to_relative_stack_address = HashMap::new();
     let mut entry_point : usize = 0;
 
+    static MAIN : Symbol = Symbol("main".to_string());
+
     for ir in irs {
-        if ir.name == Symbol("main") {
+        if ir.name == MAIN {
             entry_point = instrs.len();
         }
 
@@ -58,12 +60,20 @@ fn ir_to_instr( irs : Vec<Ir> ) -> (Vec<Instr>, usize) {
                         }, 
                         Expr::SlotAccess { .. } => panic!("Could not find relative stack address for symbol"),
                         Expr::FunCall { name, params } if symbol_to_relative_stack_address.contains_key(&name) => {
-                            let rsa = symbol_to_relative_stack_address.get(&name) .expect("Could not find relative stack address for symbol");
+                            let rsa = symbol_to_relative_stack_address.get(&name).expect("Could not find relative stack address for symbol");
+                            for param in params { 
+                                let p = symbol_to_relative_stack_address.get(&param).expect("Could not find relative stack address for symbol");
+                                instrs.push(Instr::MoveStackToParameter{ relative_stack_address: *p });
+                            }
                             instrs.push(Instr::CallFunRefOnStack(*rsa));
                             instrs.push(Instr::StoreRefFromReturnPointer { dest: target });
                         },
                         Expr::FunCall { name, params } if symbol_to_fun_address.contains_key(&name) => {
                             let fun_instr_address = symbol_to_fun_address.get(&name).expect("Could not find function address for symbol");
+                            for param in params { 
+                                let p = symbol_to_relative_stack_address.get(&param).expect("Could not find relative stack address for symbol");
+                                instrs.push(Instr::MoveStackToParameter{ relative_stack_address: *p });
+                            }
                             instrs.push(Instr::CallFun(*fun_instr_address));
                             instrs.push(Instr::StoreRefFromReturnPointer { dest: target });
                         },

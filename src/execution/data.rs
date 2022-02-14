@@ -4,9 +4,11 @@ use crate::ir::{Symbol, SlotAccessType};
 #[derive(Debug)]
 pub enum Instr {
     Nop,
+    Exit,
     Goto { instr_dest: usize },
     BranchFalse { relative_stack_address: usize, instr_dest : usize },
     MoveParameterToStack,
+    MoveStackToParameter { relative_stack_address : usize },
     StoreRefFromReturnPointer { dest : usize },
     StoreRefFromStack { src : usize, dest : usize },
     StoreFunPointer { src : usize, dest : usize },
