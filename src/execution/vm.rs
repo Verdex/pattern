@@ -113,7 +113,8 @@ fn ir_to_instr( irs : Vec<Ir> ) -> (Vec<Instr>, usize) {
 
 pub fn run( ir : Vec<Ir> ) {
     let (instructions, entry_point) : (Vec<Instr>, usize) = ir_to_instr(ir); 
-    let mut ip : usize = 0;
+
+    let mut ip : usize = entry_point;
 
     let mut stack : Vec<Ref> = vec![];
     let mut sp : usize = 0; 
@@ -121,4 +122,28 @@ pub fn run( ir : Vec<Ir> ) {
     let mut heap : Vec<Data> = vec![];
 
     let mut rp : Ref = Ref::Fun{ fun_address: 0, environment_address: None };
+
+    let mut params : Vec<Ref> = vec![];
+
+    loop {
+        match instructions[ip] {
+            Instr::Nop => { ip += 1; },
+            Instr::Exit => { break; },
+            Instr::Goto { instr_dest } => { ip = instr_dest; },
+            Instr::BranchFalse { relative_stack_address: usize, instr_dest : usize },
+            Instr::MoveParameterToStack,
+            Instr::MoveStackToParameter { relative_stack_address : usize },
+            Instr::StoreRefFromReturnPointer { dest : usize },
+            Instr::StoreRefFromStack { src : usize, dest : usize },
+            Instr::StoreFunPointer { src : usize, dest : usize },
+
+            // After these instructions the VM needs to populate the rp
+            Instr::Return(usize),
+            Instr::ConsNumber(i64),
+            Instr::ConsBool(bool),
+            Instr::CallFun(usize),
+            Instr::CallFunRefOnStack(usize), 
+            Instr::StackSlotAccess { src: usize, slot : SlotAccessType },
+        }
+    }
 }
