@@ -13,6 +13,10 @@ fn ir_to_instr( irs : Vec<Ir> ) -> (Vec<Instr>, usize) {
     let mut entry_point : usize = 0;
 
     for ir in irs {
+        if ir.name == Symbol("main") {
+            entry_point = instrs.len();
+        }
+
         symbol_to_fun_address.insert(ir.name, instrs.len());
         let mut relative_stack_address : usize = 0;
         for param in ir.params {
