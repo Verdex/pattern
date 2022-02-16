@@ -1,9 +1,19 @@
 
 use std::collections::HashMap;
 
-use crate::ir::{Ir, Statement, Expr, Symbol};
+use crate::ir::{Ir, Statement, Expr, Symbol, SlotAccessType};
 
-use super::data::{Instr, Data, Ref};
+use super::data::{ Instr
+                 , Data
+                 , Ref
+                 , Instructions
+                 , Heap
+                 , Stack
+                 , InstructionAddress
+                 , HeapAddress
+                 , StackAddress
+                 , Addressable
+                 };
 
 
 fn ir_to_instr( irs : Vec<Ir> ) -> (Vec<Instr>, usize) {
