@@ -51,12 +51,11 @@ fn ir_to_instr( irs : Vec<Ir> ) -> (Vec<Instr>, usize) {
                             instrs.push(Instr::StoreFunPointer { src : *rsa, dest : target });
                         },
                         Expr::Variable(_) => panic!("Unknown variable symbol"),
-                        Expr::SlotAccess { data, slot } if symbol_to_relative_stack_address.contains_key(&data) => {
+                        Expr::SlotAccess { data, slot } => {
                             let rsa = symbol_to_relative_stack_address.get(&data).expect("Could not find relative stack address for symbol");
                             instrs.push(Instr::StackSlotAccess{ src: *rsa, slot });
                             instrs.push(Instr::StoreRefFromReturnPointer { dest: target });
                         }, 
-                        Expr::SlotAccess { .. } => panic!("Could not find relative stack address for symbol"),
                         Expr::FunCall { name, params } if symbol_to_relative_stack_address.contains_key(&name) => {
                             let rsa = symbol_to_relative_stack_address.get(&name).expect("Could not find relative stack address for symbol");
                             for param in params { 
