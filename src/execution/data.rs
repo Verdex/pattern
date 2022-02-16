@@ -106,9 +106,9 @@ pub enum Instr {
     StackSlotAccess { src: usize, slot : SlotAccessType },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Ref {
-    Heap { address: usize, offset : SlotAccessType },
+    Heap { address: usize },
     Fun { fun_address : usize, environment_address : Option<usize> },
 }
 
@@ -116,6 +116,6 @@ pub enum Ref {
 pub enum Data {
     Bool(bool),
     Number(i64),
-    Compound { tag : Symbol, params: Vec<Data> },
+    Tag(Symbol),
     Reference(Ref),
 }
