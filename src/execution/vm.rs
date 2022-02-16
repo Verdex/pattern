@@ -123,24 +123,68 @@ pub fn run( ir : Vec<Ir> ) {
     let mut params : Vec<Ref> = vec![];
 
     loop {
-        match instructions[ip] {
+        match &instructions[ip] {
             Instr::Nop => { ip += 1; },
             Instr::Exit => { break; },
-            Instr::Goto { instr_dest } => { ip = instr_dest; },
-            Instr::BranchFalse { relative_stack_address: usize, instr_dest : usize },
-            Instr::MoveParameterToStack,
-            Instr::MoveStackToParameter { relative_stack_address : usize },
-            Instr::StoreRefFromReturnPointer { dest : usize },
-            Instr::StoreRefFromStack { src : usize, dest : usize },
-            Instr::StoreFunPointer { src : usize, dest : usize },
+            Instr::Goto { instr_dest } => { ip = *instr_dest; },
+            Instr::BranchFalse { relative_stack_address, instr_dest } => {
+                let r = stack[relative_stack_address + sp];
+                match r {
+                    Ref::Heap { address } => {
+                        let v = &heap[address];
+                        match v {
+                            Data::Bool(true) => { },
+                            Data::Bool(false) => {
+                                ip = *instr_dest;
+                            },
+                            _ => panic!("Branch false called on non bool value"),
+                        }
+                    }, 
+                    Ref::Fun { .. } => panic!("Branch false called on function address"),
+                }
+            },
+            Instr::MoveParameterToStack => {
+                let p = params.remove(1);
+                stack.push(p);
+            },
+            Instr::MoveStackToParameter { relative_stack_address } => {
+                let p = stack[*relative_stack_address];
+                params.push(p);
+            },
+            Instr::StoreRefFromReturnPointer { dest } => {
+
+            },
+            Instr::StoreRefFromStack { src, dest } => {
+
+            },
+            Instr::StoreFunPointer { src, dest } => {
+
+            },
 
             // After these instructions the VM needs to populate the rp
-            Instr::Return(usize),
-            Instr::ConsNumber(i64),
-            Instr::ConsBool(bool),
-            Instr::CallFun(usize),
-            Instr::CallFunRefOnStack(usize), 
-            Instr::StackSlotAccess { src: usize, slot : SlotAccessType },
+            Instr::Return(stack_address) => {
+                // TODO populate RP with whatever is at the stack
+            },
+            Instr::ConsNumber(n) => {
+
+            },
+            Instr::ConsBool(b) => {
+
+            },
+            Instr::CallFun(address) => {
+
+            },
+            Instr::CallFunRefOnStack(address) => {
+
+            }, 
+            Instr::StackSlotAccess { src, slot } => {
+                let index = match slot {
+                    SlotAccessType::Tag => 0,
+                    SlotAccessType::Index(i) => i + 1,
+                };
+
+                rp = Ref::Heap { address: src + index }; 
+            },
         }
     }
 }
