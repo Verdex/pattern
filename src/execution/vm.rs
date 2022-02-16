@@ -12,10 +12,8 @@ fn ir_to_instr( irs : Vec<Ir> ) -> (Vec<Instr>, usize) {
     let mut symbol_to_relative_stack_address = HashMap::new();
     let mut entry_point : usize = 0;
 
-    static MAIN : Symbol = Symbol("main".to_string());
-
     for ir in irs {
-        if ir.name == MAIN {
+        if ir.name == Symbol("main".to_string()) {
             entry_point = instrs.len();
         }
 
