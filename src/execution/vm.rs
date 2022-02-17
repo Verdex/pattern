@@ -9,25 +9,26 @@ use super::data::{ Instr
                  , Instructions
                  , Heap
                  , Stack
+                 , Addressable
                  , InstructionAddress
                  , HeapAddress
                  , StackAddress
-                 , Addressable
+                 , Address
                  };
 
 
-fn ir_to_instr( irs : Vec<Ir> ) -> (Vec<Instr>, usize) {
-    let mut instrs = vec![];
+fn ir_to_instr( irs : Vec<Ir> ) -> (Instructions, InstructionAddress) {
+    let mut instrs = Instructions::new();
     let mut symbol_to_fun_address = HashMap::new();
     let mut symbol_to_relative_stack_address = HashMap::new();
-    let mut entry_point : usize = 0;
+    let mut entry_point = InstructionAddress::new(0);
 
     for ir in irs {
         if ir.name == Symbol("main".to_string()) {
-            entry_point = instrs.len();
+            entry_point = instrs.fresh_address();
         }
 
-        symbol_to_fun_address.insert(ir.name, instrs.len());
+        symbol_to_fun_address.insert(ir.name, instrs.fresh_address());
         let mut relative_stack_address : usize = 0;
         for param in ir.params {
             symbol_to_relative_stack_address.insert(param, relative_stack_address);
@@ -46,11 +47,11 @@ fn ir_to_instr( irs : Vec<Ir> ) -> (Vec<Instr>, usize) {
                     match *expr {
                         Expr::Number(v) => {
                             instrs.push(Instr::ConsNumber(v));
-                            instrs.push(Instr::StoreRefFromReturnPointer { dest: target });
+                            instrs.push(Instr::StoreRefFromReturnPointer { relative_stack_address: target });
                         },
                         Expr::Bool(v) => {
                             instrs.push(Instr::ConsBool(v));
-                            instrs.push(Instr::StoreRefFromReturnPointer { dest: target });
+                            instrs.push(Instr::StoreRefFromReturnPointer { relative_stack_address: target });
                         },
                         Expr::Variable(name) if symbol_to_relative_stack_address.contains_key(&name) => {
                             let rsa = symbol_to_relative_stack_address.get(&name).expect("Could not find relative stack address for symbol");
@@ -64,7 +65,7 @@ fn ir_to_instr( irs : Vec<Ir> ) -> (Vec<Instr>, usize) {
                         Expr::SlotAccess { data, slot } => {
                             let rsa = symbol_to_relative_stack_address.get(&data).expect("Could not find relative stack address for symbol");
                             instrs.push(Instr::StackSlotAccess{ src: *rsa, slot });
-                            instrs.push(Instr::StoreRefFromReturnPointer { dest: target });
+                            instrs.push(Instr::StoreRefFromReturnPointer { relative_stack_address: target });
                         }, 
                         Expr::FunCall { name, params } if symbol_to_relative_stack_address.contains_key(&name) => {
                             let rsa = symbol_to_relative_stack_address.get(&name).expect("Could not find relative stack address for symbol");
@@ -72,8 +73,8 @@ fn ir_to_instr( irs : Vec<Ir> ) -> (Vec<Instr>, usize) {
                                 let p = symbol_to_relative_stack_address.get(&param).expect("Could not find relative stack address for symbol");
                                 instrs.push(Instr::MoveStackToParameter{ relative_stack_address: *p });
                             }
-                            instrs.push(Instr::CallFunRefOnStack(*rsa));
-                            instrs.push(Instr::StoreRefFromReturnPointer { dest: target });
+                            instrs.push(Instr::CallFunRefOnStack { relative_stack_address: *rsa });
+                            instrs.push(Instr::StoreRefFromReturnPointer { relative_stack_address: target });
                         },
                         Expr::FunCall { name, params } if symbol_to_fun_address.contains_key(&name) => {
                             let fun_instr_address = symbol_to_fun_address.get(&name).expect("Could not find function address for symbol");
@@ -82,14 +83,14 @@ fn ir_to_instr( irs : Vec<Ir> ) -> (Vec<Instr>, usize) {
                                 instrs.push(Instr::MoveStackToParameter{ relative_stack_address: *p });
                             }
                             instrs.push(Instr::CallFun(*fun_instr_address));
-                            instrs.push(Instr::StoreRefFromReturnPointer { dest: target });
+                            instrs.push(Instr::StoreRefFromReturnPointer { relative_stack_address: target });
                         },
                         Expr::FunCall { .. } => panic!("Unknown function symbol"),
                     }
 
                 },
                 Statement::Label(name) => {
-                    symbol_to_fun_address.insert(name, instrs.len());
+                    symbol_to_fun_address.insert(name, instrs.fresh_address());
                     instrs.push(Instr::Nop);
                 },
                 Statement::BranchFalse { target, dest } if symbol_to_fun_address.contains_key(&dest) 
@@ -109,7 +110,7 @@ fn ir_to_instr( irs : Vec<Ir> ) -> (Vec<Instr>, usize) {
                 Statement::Goto(dest) => panic!("Could not find function address for symbol"),
                 Statement::Return(name) => {
                     let rsa = symbol_to_relative_stack_address.get(&name).expect("Could not find relative stack address for symbol");
-                    instrs.push(Instr::Return(*rsa));
+                    instrs.push(Instr::Return { relative_stack_address: *rsa });
                 },
             }
         }
@@ -119,29 +120,27 @@ fn ir_to_instr( irs : Vec<Ir> ) -> (Vec<Instr>, usize) {
 }
 
 pub fn run( ir : Vec<Ir> ) {
-    let (instructions, entry_point) : (Vec<Instr>, usize) = ir_to_instr(ir); 
+    let (instructions, mut ip) = ir_to_instr(ir); 
 
-    let mut ip : usize = entry_point;
+    let mut stack = Stack::new();
+    let mut sp = StackAddress::new(0); 
 
-    let mut stack : Vec<Ref> = vec![];
-    let mut sp : usize = 0; 
+    let mut heap = Heap::new();
 
-    let mut heap : Vec<Data> = vec![];
-
-    let mut rp : Ref = Ref::Fun{ fun_address: 0, environment_address: None };
+    let mut rp : Ref = Ref::Fun{ fun_address: InstructionAddress::new(0), environment_address: None };
 
     let mut params : Vec<Ref> = vec![];
 
     loop {
-        match &instructions[ip] {
-            Instr::Nop => { ip += 1; },
+        match instructions.get(ip) {
+            Instr::Nop => { ip.inc(1); },
             Instr::Exit => { break; },
             Instr::Goto { instr_dest } => { ip = *instr_dest; },
             Instr::BranchFalse { relative_stack_address, instr_dest } => {
-                let r = stack[relative_stack_address + sp];
+                let r = stack.get(sp.offset(*relative_stack_address));
                 match r {
-                    Ref::Heap { address } => {
-                        let v = &heap[address];
+                    Ref::Heap(address) => {
+                        let v = heap.get(*address);
                         match v {
                             Data::Bool(true) => { },
                             Data::Bool(false) => {
@@ -158,10 +157,10 @@ pub fn run( ir : Vec<Ir> ) {
                 stack.push(p);
             },
             Instr::MoveStackToParameter { relative_stack_address } => {
-                let p = stack[*relative_stack_address];
-                params.push(p);
+                let p = stack.get(sp.offset(*relative_stack_address));
+                params.push(*p);
             },
-            Instr::StoreRefFromReturnPointer { dest } => {
+            Instr::StoreRefFromReturnPointer { relative_stack_address } => {
 
             },
             Instr::StoreRefFromStack { src, dest } => {
@@ -172,7 +171,7 @@ pub fn run( ir : Vec<Ir> ) {
             },
 
             // After these instructions the VM needs to populate the rp
-            Instr::Return(stack_address) => {
+            Instr::Return { relative_stack_address } => {
                 // TODO populate RP with whatever is at the stack
             },
             Instr::ConsNumber(n) => {
@@ -184,7 +183,7 @@ pub fn run( ir : Vec<Ir> ) {
             Instr::CallFun(address) => {
 
             },
-            Instr::CallFunRefOnStack(address) => {
+            Instr::CallFunRefOnStack { relative_stack_address } => {
 
             }, 
             Instr::StackSlotAccess { src, slot } => {
@@ -193,7 +192,9 @@ pub fn run( ir : Vec<Ir> ) {
                     SlotAccessType::Index(i) => i + 1,
                 };
 
-                rp = Ref::Heap { address: src + index }; 
+                let r = stack.get(sp.offset(*src));
+
+                rp = *r; 
             },
         }
     }
