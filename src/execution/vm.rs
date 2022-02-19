@@ -161,13 +161,14 @@ pub fn run( ir : Vec<Ir> ) {
                 params.push(*p);
             },
             Instr::StoreRefFromReturnPointer { relative_stack_address } => {
-
+                stack.push(rp.clone());
             },
             Instr::StoreRefFromStack { src, dest } => {
-
+                let s = stack.get(sp.offset(*src));
+                stack.push(s.clone());
             },
             Instr::StoreFunPointer { src, dest } => {
-
+                
             },
 
             // After these instructions the VM needs to populate the rp
