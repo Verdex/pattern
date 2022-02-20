@@ -16,8 +16,6 @@ pub enum Data {
 
 #[derive(Debug)]
 pub struct Frame {
-    pub incoming_params : Vec<HeapAddress>,
-    pub outgoing_params : Vec<HeapAddress>,
     pub return_address : Option<InstructionAddress>,
     pub stack : Vec<HeapAddress>,
 }
