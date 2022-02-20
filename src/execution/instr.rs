@@ -18,6 +18,7 @@ impl InstructionAddress {
 pub enum Instruction { 
    Print(StackOffset),
    Call(InstructionAddress),
+   CallFromHeap(StackOffset),
    PushReturnPointerToStack,
    PushStackToParam(StackOffset),
    Exit,

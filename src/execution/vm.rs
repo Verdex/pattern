@@ -68,6 +68,26 @@ impl VM {
                     self.instruction_pointer = *address;
                     continue;
                 },
+                Instruction::CallFromHeap(stack_offset) => {
+                    let s = get_stack(&self.current_frame.stack, *stack_offset);
+                    let h = get_heap(&self.heap, s);
+                    let address = match h {
+                        Data::Fun(x) => x,
+                        _ => panic!("CallFromHeap must call a function instruction"),
+                    };
+
+                    let incoming_params = mem::take(&mut self.outgoing_params);
+
+                    let mut frame = Frame { stack: incoming_params 
+                                          , return_address: self.instruction_pointer.next()
+                                          };
+
+                    mem::swap(&mut frame, &mut self.current_frame);
+
+                    self.frames.push(frame);
+                    self.instruction_pointer = *address;
+                    continue;
+                },
                 Instruction::PushReturnPointerToStack => {
                     self.current_frame.stack.push(self.return_pointer);
                 },
