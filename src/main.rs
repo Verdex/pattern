@@ -41,9 +41,12 @@ mod execution;
     array_pattern<anon>
 
 */
+
 fn main() {
     use parsing::parser;
     use generation::generator;
+    use execution::vm::{VM, DefaultSystemCalls};
+    use execution::instr::InstructionAddress;
 
     /* TODO:  At runtime we're looking at:
                     Cons
@@ -66,6 +69,11 @@ fn main() {
     let asts = parser::parse("input").unwrap(); // TODO handle err case
     let ir = generator::generate(asts).unwrap(); // TODO handle err case
 
-    execution::vm::run(ir);
+    let mut sys_calls = DefaultSystemCalls{ };
+    let mut vm = VM::new(vec![], InstructionAddress(0));
+
+    vm.run(&mut sys_calls);
+
+    //execution::vm::run(ir);
 
 }

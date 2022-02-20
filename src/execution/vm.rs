@@ -1,202 +1,248 @@
 
 use std::collections::HashMap;
+use std::mem;
 
-use crate::ir::{Ir, Statement, Expr, Symbol, SlotAccessType};
+use super::instr::{ Instruction
+                  , InstructionAddress
+                  , StackOffset
+                  };
 
-use super::data::{ Instr
+use super::data::{ Frame
                  , Data
-                 , Ref
-                 , Instructions
-                 , Heap
-                 , Stack
-                 , Addressable
-                 , InstructionAddress
                  , HeapAddress
-                 , StackAddress
-                 , Address
                  };
 
+pub struct VM {
+    instruction_pointer : InstructionAddress,
+    instructions : Vec<Instruction>,
+    heap : Vec<Data>,
+    outgoing_params : Vec<HeapAddress>,
+    frames : Vec<Frame>,
+    current_frame : Frame,
+    return_pointer : HeapAddress,
+}
 
-fn ir_to_instr( irs : Vec<Ir> ) -> (Instructions, InstructionAddress) {
-    let mut instrs = Instructions::new();
-    let mut symbol_to_fun_address = HashMap::new();
-    let mut symbol_to_relative_stack_address = HashMap::new();
-    let mut entry_point = InstructionAddress::new(0);
+pub trait SystemCalls {
+    fn print(&mut self, s : String);
+}
 
-    for ir in irs {
-        if ir.name == Symbol("main".to_string()) {
-            entry_point = instrs.fresh_address();
-        }
+pub struct DefaultSystemCalls { }
 
-        symbol_to_fun_address.insert(ir.name, instrs.fresh_address());
-        let mut relative_stack_address : usize = 0;
-        for param in ir.params {
-            symbol_to_relative_stack_address.insert(param, relative_stack_address);
-            relative_stack_address+=1;
-            instrs.push(Instr::MoveParameterToStack);
-        }
+impl SystemCalls for DefaultSystemCalls {
+    fn print(&mut self, s : String) {
+        println!("{}", s);
+    }
+}
 
-        for statement in ir.statements {
-            match statement {
-                Statement::Assign { name, expr } => {
+impl VM {
+    pub fn new(instructions : Vec<Instruction>, entry_point : InstructionAddress) -> Self {
+        VM { instruction_pointer: entry_point 
+           , instructions
+           , heap: vec![]
+           , outgoing_params: vec![]
+           , frames: vec![]
+           , current_frame: Frame { stack: vec![], return_address: InstructionAddress(0) } 
+           , return_pointer: HeapAddress(0)
+           }
+    }
 
-                    let target = relative_stack_address;
-                    symbol_to_relative_stack_address.insert(name, target);
-                    relative_stack_address+=1;
+    pub fn run( &mut self, sys_calls : &mut impl SystemCalls ) {
 
-                    match *expr {
-                        Expr::Number(v) => {
-                            instrs.push(Instr::ConsNumber(v));
-                            instrs.push(Instr::StoreRefFromReturnPointer { relative_stack_address: target });
-                        },
-                        Expr::Bool(v) => {
-                            instrs.push(Instr::ConsBool(v));
-                            instrs.push(Instr::StoreRefFromReturnPointer { relative_stack_address: target });
-                        },
-                        Expr::Variable(name) if symbol_to_relative_stack_address.contains_key(&name) => {
-                            let rsa = symbol_to_relative_stack_address.get(&name).expect("Could not find relative stack address for symbol");
-                            instrs.push(Instr::StoreRefFromStack { src : *rsa, dest : target });
-                        },
-                        Expr::Variable(name) if symbol_to_fun_address.contains_key(&name) => {
-                            let rsa = symbol_to_fun_address.get(&name).expect("Could not find function address for symbol");
-                            instrs.push(Instr::StoreFunPointer { src : *rsa, dest : target });
-                        },
-                        Expr::Variable(_) => panic!("Unknown variable symbol"),
-                        Expr::SlotAccess { data, slot } => {
-                            let rsa = symbol_to_relative_stack_address.get(&data).expect("Could not find relative stack address for symbol");
-                            instrs.push(Instr::StackSlotAccess{ src: *rsa, slot });
-                            instrs.push(Instr::StoreRefFromReturnPointer { relative_stack_address: target });
-                        }, 
-                        Expr::FunCall { name, params } if symbol_to_relative_stack_address.contains_key(&name) => {
-                            let rsa = symbol_to_relative_stack_address.get(&name).expect("Could not find relative stack address for symbol");
-                            for param in params { 
-                                let p = symbol_to_relative_stack_address.get(&param).expect("Could not find relative stack address for symbol");
-                                instrs.push(Instr::MoveStackToParameter{ relative_stack_address: *p });
-                            }
-                            instrs.push(Instr::CallFunRefOnStack { relative_stack_address: *rsa });
-                            instrs.push(Instr::StoreRefFromReturnPointer { relative_stack_address: target });
-                        },
-                        Expr::FunCall { name, params } if symbol_to_fun_address.contains_key(&name) => {
-                            let fun_instr_address = symbol_to_fun_address.get(&name).expect("Could not find function address for symbol");
-                            for param in params { 
-                                let p = symbol_to_relative_stack_address.get(&param).expect("Could not find relative stack address for symbol");
-                                instrs.push(Instr::MoveStackToParameter{ relative_stack_address: *p });
-                            }
-                            instrs.push(Instr::CallFun(*fun_instr_address));
-                            instrs.push(Instr::StoreRefFromReturnPointer { relative_stack_address: target });
-                        },
-                        Expr::FunCall { .. } => panic!("Unknown function symbol"),
-                    }
-
+        loop {
+            match get_instruction(&self.instructions, self.instruction_pointer) {
+                Instruction::Print(stack_offset) => { 
+                    let r = get_stack(&self.current_frame.stack, *stack_offset);
+                    let h = get_heap(&self.heap, r);
+                    sys_calls.print( display(h) );
                 },
-                Statement::Label(name) => {
-                    symbol_to_fun_address.insert(name, instrs.fresh_address());
-                    instrs.push(Instr::Nop);
-                },
-                Statement::BranchFalse { target, dest } if symbol_to_fun_address.contains_key(&dest) 
-                                                        && symbol_to_relative_stack_address.contains_key(&target)
-                    => {
+                Instruction::Call(address) => {
+                    let incoming_params = mem::take(&mut self.outgoing_params);
 
-                        let dest = symbol_to_fun_address.get(&dest).expect("Could not find function address for symbol");
-                        let rsa = symbol_to_relative_stack_address.get(&target).expect("Could not find relative stack address for symbol");
+                    let mut frame = Frame { stack: incoming_params 
+                                          , return_address: self.instruction_pointer.next()
+                                          };
 
-                        instrs.push(Instr::BranchFalse { relative_stack_address: *rsa, instr_dest: *dest });
+                    mem::swap(&mut frame, &mut self.current_frame);
+
+                    self.frames.push(frame);
+                    self.instruction_pointer = *address;
+                    continue;
                 },
-                Statement::BranchFalse { .. } => panic!("Could not find function address or relative stack address for symbol"),
-                Statement::Goto(dest) => {
-                    let dest = symbol_to_fun_address.get(&dest).expect("Could not find function address for symbol");
-                    instrs.push(Instr::Goto { instr_dest: *dest });
+                Instruction::PushReturnPointerToStack => {
+                    self.current_frame.stack.push(self.return_pointer);
                 },
-                Statement::Goto(dest) => panic!("Could not find function address for symbol"),
-                Statement::Return(name) => {
-                    let rsa = symbol_to_relative_stack_address.get(&name).expect("Could not find relative stack address for symbol");
-                    instrs.push(Instr::Return { relative_stack_address: *rsa });
+                Instruction::PushStackToParam(stack_offset) => {
+                    let v = get_stack(&self.current_frame.stack, *stack_offset);
+                    self.outgoing_params.push(v);
+                },
+                Instruction::Exit => { break; },
+
+                // Needs to put a HeapAddress on the return_pointer
+                Instruction::ConsBool(b) => {
+                    let address = HeapAddress(self.heap.len());
+                    self.heap.push(Data::Bool(*b));
+                    self.return_pointer = address;
+                },
+                Instruction::ConsNumber(n) => {
+                    let address = HeapAddress(self.heap.len());
+                    self.heap.push(Data::Number(*n));
+                    self.return_pointer = address;
+                },
+                Instruction::ConsString(s) => {
+                    let address = HeapAddress(self.heap.len());
+                    self.heap.push(Data::String(s.clone()));
+                    self.return_pointer = address;
+                },
+                Instruction::ConsFunAddress(instr_addr) => {
+                    let address = HeapAddress(self.heap.len());
+                    self.heap.push(Data::Fun(*instr_addr));
+                    self.return_pointer = address;
+                },
+                Instruction::ConsRef(stack_offset) => {
+                    let address = HeapAddress(self.heap.len());
+                    let r = get_stack(&self.current_frame.stack, *stack_offset);
+                    self.heap.push(Data::Ref(r));
+                    self.return_pointer = address;
+                },
+                Instruction::Return(stack_offset) => {
+                    let r = get_stack(&self.current_frame.stack, *stack_offset);
+                    self.return_pointer = r;
+                    let mut prev_frame = self.frames.pop().expect("There must be a previous frame on Return");
+                    self.instruction_pointer = self.current_frame.return_address;
+                    mem::swap(&mut self.current_frame, &mut prev_frame);
+                    continue;
                 },
             }
+            
+            self.instruction_pointer.inc();
+        }
+    }
+}
+
+fn get_instruction(instructions : &Vec<Instruction>, address : InstructionAddress) -> &Instruction {
+    &instructions[address.0]
+}
+
+fn get_stack(stack : &Vec<HeapAddress>, offset : StackOffset) -> HeapAddress {
+    stack[offset.0]
+}
+
+fn get_heap(heap : &Vec<Data>, address : HeapAddress) -> &Data {
+    &heap[address.0]
+}
+
+fn display(d : &Data) -> String {
+    match d {
+        Data::Bool(true) => "true".to_string(),
+        Data::Bool(false) => "false".to_string(),
+        Data::Number(i) => i.to_string(),
+        Data::String(s) => s.to_string(),
+        Data::Fun(address) => format!("function at:  {:X}", address.0),
+        Data::Ref(address) => format!("data at:  {:X}", address.0),
+    }
+}
+
+#[cfg(test)] 
+mod test {
+    use super::*;
+
+    struct TestSysCall {
+        prints : Vec<String>,
+    }
+
+    impl SystemCalls for TestSysCall {
+        fn print(&mut self, s : String) {
+            self.prints.push(s);
         }
     }
 
-    (instrs, entry_point)
-}
+    #[test]
+    fn run_should_exit() {
+        let mut sys = TestSysCall { prints: vec![] };
+        let mut vm = VM::new(vec![ Instruction::Exit ], InstructionAddress(0));
 
-pub fn run( ir : Vec<Ir> ) {
-    let (instructions, mut ip) = ir_to_instr(ir); 
+        vm.run(&mut sys);
+    }
 
-    let mut stack = Stack::new();
-    let mut sp = StackAddress::new(0); 
+    #[test]
+    fn cons_bool_should_leave_bool_on_heap() {
+        let mut sys = TestSysCall { prints: vec![] };
+        let mut vm = VM::new( vec![ Instruction::ConsBool(true)
+                                  , Instruction::Exit
+                                  ]
+                            , InstructionAddress(0));
 
-    let mut heap = Heap::new();
+        vm.run(&mut sys);
 
-    let mut rp : Ref = Ref::Fun{ fun_address: InstructionAddress::new(0), environment_address: None };
+        let v = get_heap(&vm.heap, vm.return_pointer);
 
-    let mut params : Vec<Ref> = vec![];
+        assert!( matches!( v, Data::Bool(true) ) );
+    }
 
-    loop {
-        match instructions.get(ip) {
-            Instr::Nop => { ip.inc(1); },
-            Instr::Exit => { break; },
-            Instr::Goto { instr_dest } => { ip = *instr_dest; },
-            Instr::BranchFalse { relative_stack_address, instr_dest } => {
-                let r = stack.get(sp.offset(*relative_stack_address));
-                match r {
-                    Ref::Heap(address) => {
-                        let v = heap.get(*address);
-                        match v {
-                            Data::Bool(true) => { },
-                            Data::Bool(false) => {
-                                ip = *instr_dest;
-                            },
-                            _ => panic!("Branch false called on non bool value"),
-                        }
-                    }, 
-                    Ref::Fun { .. } => panic!("Branch false called on function address"),
-                }
-            },
-            Instr::MoveParameterToStack => {
-                let p = params.remove(1);
-                stack.push(p);
-            },
-            Instr::MoveStackToParameter { relative_stack_address } => {
-                let p = stack.get(sp.offset(*relative_stack_address));
-                params.push(*p);
-            },
-            Instr::StoreRefFromReturnPointer { relative_stack_address } => {
-                stack.push(rp.clone());
-            },
-            Instr::StoreRefFromStack { src, dest } => {
-                let s = stack.get(sp.offset(*src));
-                stack.push(s.clone());
-            },
-            Instr::StoreFunPointer { src, dest } => {
-                
-            },
+    #[test]
+    fn run_should_print() {
+        let mut sys = TestSysCall { prints: vec![] };
+        let mut vm = VM::new( vec![ Instruction::ConsBool(true)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Print(StackOffset(0))
+                                  , Instruction::Exit
+                                  ]
+                            , InstructionAddress(0));
 
-            // After these instructions the VM needs to populate the rp
-            Instr::Return { relative_stack_address } => {
-                // TODO populate RP with whatever is at the stack
-            },
-            Instr::ConsNumber(n) => {
+        vm.run(&mut sys);
 
-            },
-            Instr::ConsBool(b) => {
+        assert_eq!( sys.prints.len(), 1 );
+        assert_eq!( sys.prints[0], "true" );
+    }
 
-            },
-            Instr::CallFun(address) => {
+    #[test]
+    fn call_should_setup_internals_correctly() {
+        let mut sys = TestSysCall { prints: vec![] };
+        let mut vm = VM::new( vec![ Instruction::Call(InstructionAddress(2))
+                                  , Instruction::Exit
+                                  , Instruction::Call(InstructionAddress(4))
+                                  , Instruction::Exit
+                                  , Instruction::Exit
+                                  ]
+                            , InstructionAddress(0));
 
-            },
-            Instr::CallFunRefOnStack { relative_stack_address } => {
+        vm.run(&mut sys);
 
-            }, 
-            Instr::StackSlotAccess { src, slot } => {
-                let index = match slot {
-                    SlotAccessType::Tag => 0,
-                    SlotAccessType::Index(i) => i + 1,
-                };
+        assert_eq!(vm.frames.len(), 2);
+        assert_eq!(vm.frames[0].return_address.0, 0);
+        assert_eq!(vm.frames[1].return_address.0, 1);
+        assert_eq!(vm.current_frame.return_address.0, 3);
+    }
 
-                let r = stack.get(sp.offset(*src));
+    #[test]
+    fn should_return() {
+        let mut sys = TestSysCall { prints: vec![] };
+        let mut vm = VM::new( vec![ Instruction::Call(InstructionAddress(10))
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Call(InstructionAddress(13))
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Call(InstructionAddress(10))
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Print(StackOffset(0))
+                                  , Instruction::Print(StackOffset(1))
+                                  , Instruction::Print(StackOffset(2))
+                                  , Instruction::Exit
 
-                rp = *r; 
-            },
-        }
+                                  , Instruction::ConsBool(false)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Return(StackOffset(0))
+
+                                  , Instruction::ConsBool(true)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Return(StackOffset(0))
+                                  ]
+                            , InstructionAddress(0));
+
+        vm.run(&mut sys);
+
+        assert_eq!( sys.prints.len(), 3 );
+        assert_eq!( sys.prints[0], "false" );
+        assert_eq!( sys.prints[1], "true" );
+        assert_eq!( sys.prints[2], "false" );
     }
 }
