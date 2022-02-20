@@ -12,41 +12,71 @@ use super::data::{ Frame
                  , HeapAddress
                  };
 
-pub fn run( instructions : Vec<Instruction>
-          , entry_point : InstructionAddress
-          , mut print : impl FnMut(String) 
-          ) {
-   
-    let mut instruction_pointer = entry_point; 
-    let mut heap : Vec<Data> = vec![];
-    let mut outgoing_params : Vec<HeapAddress> = vec![];
-    let mut frames : Vec<Frame> = vec![];
-    let mut current_frame = Frame { stack: vec![] 
-                                  , return_address: None
-                                  };
+pub struct VM {
+    instruction_pointer : InstructionAddress,
+    instructions : Vec<Instruction>,
+    heap : Vec<Data>,
+    outgoing_params : Vec<HeapAddress>,
+    frames : Vec<Frame>,
+    current_frame : Frame,
+    return_pointer : HeapAddress,
+}
 
-    loop {
-        match get_instruction(&instructions, instruction_pointer) {
-            Instruction::Print(stack_offset) => { 
-                let r = get_stack(&current_frame.stack, *stack_offset);
-                let h = get_heap(&heap, r);
-                print( display(h) );
-            },
-            Instruction::Call(address) => {
-                let incoming_params = mem::take(&mut outgoing_params);
+pub trait SystemCalls {
+    fn print(&mut self, s : String);
+}
 
-                let frame = Frame { stack: incoming_params 
-                                  , return_address: Some(instruction_pointer.next())
-                                  };
+impl VM {
+    pub fn new(instructions : Vec<Instruction>, entry_point : InstructionAddress) -> Self {
+        VM { instruction_pointer: entry_point 
+           , instructions
+           , heap: vec![]
+           , outgoing_params: vec![]
+           , frames: vec![]
+           , current_frame: Frame { stack: vec![], return_address: None } 
+           , return_pointer: HeapAddress(0)
+           }
+    }
 
-                frames.push(current_frame);
-                current_frame = frame;
-                instruction_pointer = instruction_pointer;
-            },
-            Instruction::Exit => { break; },
+    pub fn run( &mut self, sys_calls : &mut impl SystemCalls ) {
+
+        loop {
+            match get_instruction(&self.instructions, self.instruction_pointer) {
+                Instruction::Print(stack_offset) => { 
+                    let r = get_stack(&self.current_frame.stack, *stack_offset);
+                    let h = get_heap(&self.heap, r);
+                    sys_calls.print( display(h) );
+                },
+                Instruction::Call(address) => {
+                    let incoming_params = mem::take(&mut self.outgoing_params);
+
+                    let mut frame = Frame { stack: incoming_params 
+                                          , return_address: Some(self.instruction_pointer.next())
+                                          };
+
+                    mem::swap(&mut frame, &mut self.current_frame);
+
+                    self.frames.push(frame);
+                    self.instruction_pointer = *address;
+                    continue;
+                },
+                Instruction::PushReturnPointerToStack => {
+                    self.current_frame.stack.push(self.return_pointer);
+                },
+                Instruction::Exit => { break; },
+
+                // Needs to put a HeapAddress on the return_pointer
+                Instruction::ConsBool(b) => {
+                    let address = HeapAddress(self.heap.len());
+                    self.heap.push(Data::Bool(*b));
+                    self.return_pointer = address;
+                },
+            }
+            
+            self.instruction_pointer.inc();
         }
     }
-} 
+}
 
 fn get_instruction(instructions : &Vec<Instruction>, address : InstructionAddress) -> &Instruction {
     &instructions[address.0]
@@ -75,18 +105,37 @@ fn display(d : &Data) -> String {
 mod test {
     use super::*;
 
+    struct TestSysCall {
+        prints : Vec<String>,
+    }
+
+    impl SystemCalls for TestSysCall {
+        fn print(&mut self, s : String) {
+            self.prints.push(s);
+        }
+    }
+
     #[test]
-    fn should_exit() {
-        run( vec![ Instruction::Exit ], InstructionAddress(0), |x| { } )
+    fn run_should_exit() {
+        let mut sys = TestSysCall { prints: vec![] };
+        let mut vm = VM::new(vec![ Instruction::Exit ], InstructionAddress(0));
+
+        vm.run(&mut sys);
     }
 
     #[test]
     fn should_print() {
-        // TODO
-        let mut x = vec![];
+        let mut sys = TestSysCall { prints: vec![] };
+        let mut vm = VM::new( vec![ Instruction::ConsBool(true)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Print(StackOffset(0))
+                                  , Instruction::Exit
+                                  ]
+                            , InstructionAddress(0));
 
-        run( vec![], InstructionAddress(0), |v| { x.push(v); })
+        vm.run(&mut sys);
+
+        assert_eq!( sys.prints.len(), 1 );
+        assert_eq!( sys.prints[0], "true" );
     }
-
-
 }
