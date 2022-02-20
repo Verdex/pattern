@@ -2,7 +2,7 @@
 #[derive(Debug, Clone, Copy)]
 pub struct StackOffset(pub usize);
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct InstructionAddress(pub usize);
 
 impl InstructionAddress {
@@ -23,6 +23,18 @@ pub enum Instruction {
    PushStackToParam(StackOffset),
    Exit,
    // Needs to put a HeapAddress on the return_pointer
+   Multiply(StackOffset, StackOffset),
+   Division(StackOffset, StackOffset),
+   Remainder(StackOffset, StackOffset),
+   Addition(StackOffset, StackOffset),
+   Substract(StackOffset, StackOffset),
+   LogicalXor(StackOffset, StackOffset),
+   LogicalNot(StackOffset),
+   LogicalOr(StackOffset, StackOffset),
+   LogicalAnd(StackOffset, StackOffset),
+   GreaterThan(StackOffset, StackOffset),
+   LessThan(StackOffset, StackOffset),
+   Equal(StackOffset, StackOffset),
    ConsBool(bool),
    ConsNumber(i64),
    ConsString(String),

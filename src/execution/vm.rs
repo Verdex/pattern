@@ -98,6 +98,104 @@ impl VM {
                 Instruction::Exit => { break; },
 
                 // Needs to put a HeapAddress on the return_pointer
+                Instruction::Multiply(offset_a, offset_b) => {
+                    let a = get_heap_number_from_stack(&self.current_frame.stack, &self.heap, *offset_a);
+                    let b = get_heap_number_from_stack(&self.current_frame.stack, &self.heap, *offset_b);
+
+                    let address = HeapAddress(self.heap.len());
+                    self.heap.push(Data::Number(a * b));
+                    self.return_pointer = address;
+                },
+                Instruction::Division(offset_a, offset_b) => {
+                    let a = get_heap_number_from_stack(&self.current_frame.stack, &self.heap, *offset_a);
+                    let b = get_heap_number_from_stack(&self.current_frame.stack, &self.heap, *offset_b);
+
+                    let address = HeapAddress(self.heap.len());
+                    self.heap.push(Data::Number(a / b));
+                    self.return_pointer = address;
+                },
+                Instruction::Remainder(offset_a, offset_b) => {
+                    let a = get_heap_number_from_stack(&self.current_frame.stack, &self.heap, *offset_a);
+                    let b = get_heap_number_from_stack(&self.current_frame.stack, &self.heap, *offset_b);
+
+                    let address = HeapAddress(self.heap.len());
+                    self.heap.push(Data::Number(a % b));
+                    self.return_pointer = address;
+                },
+                Instruction::Addition(offset_a, offset_b) => {
+                    let a = get_heap_number_from_stack(&self.current_frame.stack, &self.heap, *offset_a);
+                    let b = get_heap_number_from_stack(&self.current_frame.stack, &self.heap, *offset_b);
+
+                    let address = HeapAddress(self.heap.len());
+                    self.heap.push(Data::Number(a + b));
+                    self.return_pointer = address;
+                },
+                Instruction::Substract(offset_a, offset_b) => {
+                    let a = get_heap_number_from_stack(&self.current_frame.stack, &self.heap, *offset_a);
+                    let b = get_heap_number_from_stack(&self.current_frame.stack, &self.heap, *offset_b);
+
+                    let address = HeapAddress(self.heap.len());
+                    self.heap.push(Data::Number(a - b));
+                    self.return_pointer = address;
+                },
+                Instruction::LogicalXor(offset_a, offset_b) => {
+                    let a = get_heap_bool_from_stack(&self.current_frame.stack, &self.heap, *offset_a);
+                    let b = get_heap_bool_from_stack(&self.current_frame.stack, &self.heap, *offset_b);
+
+                    let address = HeapAddress(self.heap.len());
+                    self.heap.push(Data::Bool(a ^ b));
+                    self.return_pointer = address;
+                },
+                Instruction::LogicalNot(offset) => {
+                    let a = get_heap_bool_from_stack(&self.current_frame.stack, &self.heap, *offset);
+
+                    let address = HeapAddress(self.heap.len());
+                    self.heap.push(Data::Bool(!a));
+                    self.return_pointer = address;
+                },
+                Instruction::LogicalOr(offset_a, offset_b) => {
+                    let a = get_heap_bool_from_stack(&self.current_frame.stack, &self.heap, *offset_a);
+                    let b = get_heap_bool_from_stack(&self.current_frame.stack, &self.heap, *offset_b);
+
+                    let address = HeapAddress(self.heap.len());
+                    self.heap.push(Data::Bool(a || b));
+                    self.return_pointer = address;
+                },
+                Instruction::LogicalAnd(offset_a, offset_b) => {
+                    let a = get_heap_bool_from_stack(&self.current_frame.stack, &self.heap, *offset_a);
+                    let b = get_heap_bool_from_stack(&self.current_frame.stack, &self.heap, *offset_b);
+
+                    let address = HeapAddress(self.heap.len());
+                    self.heap.push(Data::Bool(a && b));
+                    self.return_pointer = address;
+                },
+                Instruction::GreaterThan(offset_a, offset_b) => {
+                    let a = get_heap_number_from_stack(&self.current_frame.stack, &self.heap, *offset_a);
+                    let b = get_heap_number_from_stack(&self.current_frame.stack, &self.heap, *offset_b);
+
+                    let address = HeapAddress(self.heap.len());
+                    self.heap.push(Data::Bool(a > b));
+                    self.return_pointer = address;
+                },
+                Instruction::LessThan(offset_a, offset_b) => {
+                    let a = get_heap_number_from_stack(&self.current_frame.stack, &self.heap, *offset_a);
+                    let b = get_heap_number_from_stack(&self.current_frame.stack, &self.heap, *offset_b);
+
+                    let address = HeapAddress(self.heap.len());
+                    self.heap.push(Data::Bool(a < b));
+                    self.return_pointer = address;
+                },
+                Instruction::Equal(offset_a, offset_b) => {
+                    let a_r = get_stack(&self.current_frame.stack, *offset_a);
+                    let a = get_heap(&self.heap, a_r);
+
+                    let b_r = get_stack(&self.current_frame.stack, *offset_b);
+                    let b = get_heap(&self.heap, b_r);
+
+                    let address = HeapAddress(self.heap.len());
+                    self.heap.push(Data::Bool(a == b));
+                    self.return_pointer = address;
+                },
                 Instruction::ConsBool(b) => {
                     let address = HeapAddress(self.heap.len());
                     self.heap.push(Data::Bool(*b));
@@ -158,6 +256,24 @@ fn get_stack(stack : &Vec<HeapAddress>, offset : StackOffset) -> HeapAddress {
 
 fn get_heap(heap : &Vec<Data>, address : HeapAddress) -> &Data {
     &heap[address.0]
+}
+
+fn get_heap_number_from_stack(stack : &Vec<HeapAddress>, heap : &Vec<Data>, offset : StackOffset) -> i64 {
+    let r = get_stack(stack, offset);
+    let v = get_heap(heap, r);
+    match v {
+        Data::Number(i) => *i,
+        _ => panic!("Getting Number from heap must be number"),
+    }
+}
+
+fn get_heap_bool_from_stack(stack : &Vec<HeapAddress>, heap : &Vec<Data>, offset : StackOffset) -> bool {
+    let r = get_stack(stack, offset);
+    let v = get_heap(heap, r);
+    match v {
+        Data::Bool(b) => *b,
+        _ => panic!("Getting Bool from heap must be bool"),
+    }
 }
 
 fn display(d : &Data) -> String {
