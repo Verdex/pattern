@@ -194,4 +194,55 @@ mod test {
         assert_eq!( sys.prints.len(), 1 );
         assert_eq!( sys.prints[0], "true" );
     }
+
+    #[test]
+    fn call_should_setup_internals_correctly() {
+        let mut sys = TestSysCall { prints: vec![] };
+        let mut vm = VM::new( vec![ Instruction::Call(InstructionAddress(2))
+                                  , Instruction::Exit
+                                  , Instruction::Call(InstructionAddress(4))
+                                  , Instruction::Exit
+                                  , Instruction::Exit
+                                  ]
+                            , InstructionAddress(0));
+
+        vm.run(&mut sys);
+
+        assert_eq!(vm.frames.len(), 2);
+        assert_eq!(vm.frames[0].return_address.0, 0);
+        assert_eq!(vm.frames[1].return_address.0, 1);
+        assert_eq!(vm.current_frame.return_address.0, 3);
+    }
+
+    #[test]
+    fn should_return() {
+        let mut sys = TestSysCall { prints: vec![] };
+        let mut vm = VM::new( vec![ Instruction::Call(InstructionAddress(10))
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Call(InstructionAddress(13))
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Call(InstructionAddress(10))
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Print(StackOffset(0))
+                                  , Instruction::Print(StackOffset(1))
+                                  , Instruction::Print(StackOffset(2))
+                                  , Instruction::Exit
+
+                                  , Instruction::ConsBool(false)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Return(StackOffset(0))
+
+                                  , Instruction::ConsBool(true)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Return(StackOffset(0))
+                                  ]
+                            , InstructionAddress(0));
+
+        vm.run(&mut sys);
+
+        assert_eq!( sys.prints.len(), 3 );
+        assert_eq!( sys.prints[0], "false" );
+        assert_eq!( sys.prints[1], "true" );
+        assert_eq!( sys.prints[2], "false" );
+    }
 }
