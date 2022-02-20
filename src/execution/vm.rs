@@ -134,7 +134,7 @@ fn get_heap(heap : &Vec<Data>, address : HeapAddress) -> &Data {
 fn display(d : &Data) -> String {
     match d {
         Data::Bool(true) => "true".to_string(),
-        Data::Bool(false) => "true".to_string(),
+        Data::Bool(false) => "false".to_string(),
         Data::Number(i) => i.to_string(),
         Data::String(s) => s.to_string(),
         Data::Fun(address) => format!("function at:  {:X}", address.0),
