@@ -124,7 +124,22 @@ mod test {
     }
 
     #[test]
-    fn should_print() {
+    fn cons_bool_should_leave_bool_on_heap() {
+        let mut sys = TestSysCall { prints: vec![] };
+        let mut vm = VM::new( vec![ Instruction::ConsBool(true)
+                                  , Instruction::Exit
+                                  ]
+                            , InstructionAddress(0));
+
+        vm.run(&mut sys);
+
+        let v = get_heap(&vm.heap, vm.return_pointer);
+
+        assert!( matches!( v, Data::Bool(true) ) );
+    }
+
+    #[test]
+    fn run_should_print() {
         let mut sys = TestSysCall { prints: vec![] };
         let mut vm = VM::new( vec![ Instruction::ConsBool(true)
                                   , Instruction::PushReturnPointerToStack
