@@ -27,4 +27,5 @@ pub enum Instruction {
    ConsString(String),
    ConsFunAddress(InstructionAddress),
    ConsRef(StackOffset),
+   Return(StackOffset),
 }

@@ -41,7 +41,7 @@ impl VM {
            , heap: vec![]
            , outgoing_params: vec![]
            , frames: vec![]
-           , current_frame: Frame { stack: vec![], return_address: None } 
+           , current_frame: Frame { stack: vec![], return_address: InstructionAddress(0) } 
            , return_pointer: HeapAddress(0)
            }
     }
@@ -59,7 +59,7 @@ impl VM {
                     let incoming_params = mem::take(&mut self.outgoing_params);
 
                     let mut frame = Frame { stack: incoming_params 
-                                          , return_address: Some(self.instruction_pointer.next())
+                                          , return_address: self.instruction_pointer.next()
                                           };
 
                     mem::swap(&mut frame, &mut self.current_frame);
@@ -103,6 +103,14 @@ impl VM {
                     let r = get_stack(&self.current_frame.stack, *stack_offset);
                     self.heap.push(Data::Ref(r));
                     self.return_pointer = address;
+                },
+                Instruction::Return(stack_offset) => {
+                    let r = get_stack(&self.current_frame.stack, *stack_offset);
+                    self.return_pointer = r;
+                    let mut prev_frame = self.frames.pop().expect("There must be a previous frame on Return");
+                    self.instruction_pointer = self.current_frame.return_address;
+                    mem::swap(&mut self.current_frame, &mut prev_frame);
+                    continue;
                 },
             }
             
