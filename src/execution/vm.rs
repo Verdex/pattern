@@ -274,4 +274,29 @@ mod test {
         assert_eq!( sys.prints.len(), 1 );
         assert_eq!( sys.prints[0], "true" );
     }
+
+    #[test]
+    fn should_use_params() {
+        let mut sys = TestSysCall { prints: vec![] };
+        let mut vm = VM::new( vec![ Instruction::ConsBool(true)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::ConsBool(false)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::PushStackToParam(StackOffset(0))
+                                  , Instruction::PushStackToParam(StackOffset(1))
+                                  , Instruction::Call(InstructionAddress(8))
+                                  , Instruction::Exit
+
+                                  , Instruction::Print(StackOffset(0))
+                                  , Instruction::Print(StackOffset(1))
+                                  , Instruction::Return(StackOffset(0))
+                                  ]
+                            , InstructionAddress(0));
+
+        vm.run(&mut sys);
+
+        assert_eq!( sys.prints.len(), 2 );
+        assert_eq!( sys.prints[0], "true" );
+        assert_eq!( sys.prints[1], "false" );
+    }
 }
