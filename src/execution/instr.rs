@@ -22,4 +22,8 @@ pub enum Instruction {
    Exit,
    // Needs to put a HeapAddress on the return_pointer
    ConsBool(bool),
+   ConsNumber(i64),
+   ConsString(String),
+   ConsFunAddress(InstructionAddress),
+   ConsRef(StackOffset),
 }

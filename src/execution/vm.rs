@@ -71,6 +71,27 @@ impl VM {
                     self.heap.push(Data::Bool(*b));
                     self.return_pointer = address;
                 },
+                Instruction::ConsNumber(n) => {
+                    let address = HeapAddress(self.heap.len());
+                    self.heap.push(Data::Number(*n));
+                    self.return_pointer = address;
+                },
+                Instruction::ConsString(s) => {
+                    let address = HeapAddress(self.heap.len());
+                    self.heap.push(Data::String(s.clone()));
+                    self.return_pointer = address;
+                },
+                Instruction::ConsFunAddress(instr_addr) => {
+                    let address = HeapAddress(self.heap.len());
+                    self.heap.push(Data::Fun(*instr_addr));
+                    self.return_pointer = address;
+                },
+                Instruction::ConsRef(stack_offset) => {
+                    let address = HeapAddress(self.heap.len());
+                    let r = get_stack(&self.current_frame.stack, *stack_offset);
+                    self.heap.push(Data::Ref(r));
+                    self.return_pointer = address;
+                },
             }
             
             self.instruction_pointer.inc();
@@ -96,7 +117,7 @@ fn display(d : &Data) -> String {
         Data::Bool(false) => "true".to_string(),
         Data::Number(i) => i.to_string(),
         Data::String(s) => s.to_string(),
-        Data::Func(address) => format!("function at:  {:X}", address.0),
+        Data::Fun(address) => format!("function at:  {:X}", address.0),
         Data::Ref(address) => format!("data at:  {:X}", address.0),
     }
 }

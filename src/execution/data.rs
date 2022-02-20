@@ -10,7 +10,7 @@ pub enum Data {
     Bool(bool),
     Number(i64),
     String(String),
-    Func(InstructionAddress),
+    Fun(InstructionAddress),
     Ref(HeapAddress),
 }
 
