@@ -104,6 +104,15 @@ impl VM {
                     self.heap.push(Data::Ref(r));
                     self.return_pointer = address;
                 },
+                Instruction::Deref(stack_offset) => {
+                    let s = get_stack(&self.current_frame.stack, *stack_offset);
+                    let h1 = get_heap(&self.heap, s);
+                    let h2 = match h1 {
+                        Data::Ref(h) => h,
+                        _ => panic!("Cannot dereference a non-ref value"),
+                    };
+                    self.return_pointer = *h2;
+                },
                 Instruction::Return(stack_offset) => {
                     let r = get_stack(&self.current_frame.stack, *stack_offset);
                     self.return_pointer = r;
@@ -244,5 +253,25 @@ mod test {
         assert_eq!( sys.prints[0], "false" );
         assert_eq!( sys.prints[1], "true" );
         assert_eq!( sys.prints[2], "false" );
+    }
+
+    #[test]
+    fn should_ref_and_deref() {
+        let mut sys = TestSysCall { prints: vec![] };
+        let mut vm = VM::new( vec![ Instruction::ConsBool(true)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::ConsRef(StackOffset(0))
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Deref(StackOffset(1))
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Print(StackOffset(2))
+                                  , Instruction::Exit
+                                  ]
+                            , InstructionAddress(0));
+
+        vm.run(&mut sys);
+
+        assert_eq!( sys.prints.len(), 1 );
+        assert_eq!( sys.prints[0], "true" );
     }
 }
