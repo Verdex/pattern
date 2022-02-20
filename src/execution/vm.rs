@@ -319,4 +319,25 @@ mod test {
         assert_eq!( sys.prints[0], "true" );
         assert_eq!( sys.prints[1], "false" );
     }
+
+    #[test]
+    fn should_call_from_heap() {
+        let mut sys = TestSysCall { prints: vec![] };
+        let mut vm = VM::new( vec![ Instruction::Print(StackOffset(0)) 
+                                  , Instruction::Return(StackOffset(0))
+
+                                  , Instruction::ConsBool(true)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::PushStackToParam(StackOffset(0))
+                                  , Instruction::ConsFunAddress(InstructionAddress(0))
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::CallFromHeap(StackOffset(1))
+                                  , Instruction::Exit
+                                  ]
+                            , InstructionAddress(2));
+
+        vm.run(&mut sys);
+        assert_eq!( sys.prints.len(), 1 );
+        assert_eq!( sys.prints[0], "true" );
+    }
 }
