@@ -19,6 +19,7 @@ pub enum Instruction {
    Print(StackOffset),
    Call(InstructionAddress),
    PushReturnPointerToStack,
+   PushStackToParam(StackOffset),
    Exit,
    // Needs to put a HeapAddress on the return_pointer
    ConsBool(bool),

@@ -26,6 +26,14 @@ pub trait SystemCalls {
     fn print(&mut self, s : String);
 }
 
+pub struct DefaultSystemCalls { }
+
+impl SystemCalls for DefaultSystemCalls {
+    fn print(&mut self, s : String) {
+        println!("{}", s);
+    }
+}
+
 impl VM {
     pub fn new(instructions : Vec<Instruction>, entry_point : InstructionAddress) -> Self {
         VM { instruction_pointer: entry_point 
@@ -62,6 +70,10 @@ impl VM {
                 },
                 Instruction::PushReturnPointerToStack => {
                     self.current_frame.stack.push(self.return_pointer);
+                },
+                Instruction::PushStackToParam(stack_offset) => {
+                    let v = get_stack(&self.current_frame.stack, *stack_offset);
+                    self.outgoing_params.push(v);
                 },
                 Instruction::Exit => { break; },
 
