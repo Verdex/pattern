@@ -9,11 +9,17 @@ impl InstructionAddress {
     pub fn next(&self) -> InstructionAddress {
         InstructionAddress(self.0 + 1)
     }
+    pub fn inc(&mut self) {
+        self.0 += 1;
+    }
 }
 
 #[derive(Debug)]
 pub enum Instruction { 
    Print(StackOffset),
    Call(InstructionAddress),
+   PushReturnPointerToStack,
    Exit,
+   // Needs to put a HeapAddress on the return_pointer
+   ConsBool(bool),
 }
