@@ -95,6 +95,13 @@ impl VM {
                     let v = get_stack(&self.current_frame.stack, *stack_offset);
                     self.outgoing_params.push(v);
                 },
+                Instruction::BranchFalse(offset, instr) => {
+                    let v = get_heap_bool_from_stack(&self.current_frame.stack, &self.heap, *offset);
+                    if !v {
+                        self.instruction_pointer = *instr;
+                        continue;
+                    }
+                },
                 Instruction::Exit => { break; },
 
                 // Needs to put a HeapAddress on the return_pointer

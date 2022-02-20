@@ -21,6 +21,7 @@ pub enum Instruction {
    CallFromHeap(StackOffset),
    PushReturnPointerToStack,
    PushStackToParam(StackOffset),
+   BranchFalse(StackOffset, InstructionAddress),
    Exit,
    // Needs to put a HeapAddress on the return_pointer
    Multiply(StackOffset, StackOffset),
