@@ -22,8 +22,11 @@ pub enum Instruction {
    PushReturnPointerToStack,
    PushStackToParam(StackOffset),
    BranchFalse(StackOffset, InstructionAddress),
+   Move { src : StackOffset, dest: StackOffset },
+   MoveReturnPointerToStack(StackOffset),
    Exit,
    // Needs to put a HeapAddress on the return_pointer
+   PopStack,
    Multiply(StackOffset, StackOffset),
    Division(StackOffset, StackOffset),
    Remainder(StackOffset, StackOffset),

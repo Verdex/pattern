@@ -102,9 +102,20 @@ impl VM {
                         continue;
                     }
                 },
+                Instruction::Move { src, dest } => {
+                    let v = get_stack(&self.current_frame.stack, *src);
+                    set_stack(&mut self.current_frame.stack, *dest, v);
+                },
+                Instruction::MoveReturnPointerToStack(stack_offset) => {
+                    set_stack(&mut self.current_frame.stack, *stack_offset, self.return_pointer);
+                },
                 Instruction::Exit => { break; },
 
                 // Needs to put a HeapAddress on the return_pointer
+                Instruction::PopStack => {
+                    let v = self.current_frame.stack.pop().expect("There must be a stack in order to pop");
+                    self.return_pointer = v;
+                },
                 Instruction::Multiply(offset_a, offset_b) => {
                     let a = get_heap_number_from_stack(&self.current_frame.stack, &self.heap, *offset_a);
                     let b = get_heap_number_from_stack(&self.current_frame.stack, &self.heap, *offset_b);
@@ -261,6 +272,10 @@ fn get_instruction(instructions : &Vec<Instruction>, address : InstructionAddres
 
 fn get_stack(stack : &Vec<HeapAddress>, offset : StackOffset) -> HeapAddress {
     stack[offset.0]
+}
+
+fn set_stack(stack : &mut Vec<HeapAddress>, offset : StackOffset, v : HeapAddress) {
+    stack[offset.0] = v;
 }
 
 fn get_heap(heap : &Vec<Data>, address : HeapAddress) -> &Data {
@@ -505,21 +520,84 @@ mod test {
     }
 
     #[test]
-    fn should_branch() {
-        /*let mut sys = TestSysCall { prints: vec![] };
+    fn should_pop_stack() {
+        let mut sys = TestSysCall { prints: vec![] };
         let mut vm = VM::new( vec![ Instruction::ConsNumber(7)
                                   , Instruction::PushReturnPointerToStack
+                                  , Instruction::PopStack
                                   , Instruction::ConsNumber(11)
                                   , Instruction::PushReturnPointerToStack
-                                  , Instruction::Substract(StackOffset(0), StackOffset(1))
+                                  , Instruction::PopStack
                                   , Instruction::PushReturnPointerToStack
-                                  , Instruction::Print(StackOffset(2))
+                                  , Instruction::Print(StackOffset(0))
                                   , Instruction::Exit
                                   ]
                             , InstructionAddress(0));
 
         vm.run(&mut sys);
         assert_eq!( sys.prints.len(), 1 );
-        assert_eq!( sys.prints[0], "-4" );*/
+        assert_eq!( sys.prints[0], "11" );
+    }
+
+    #[test]
+    fn should_move_from_return_pointer() {
+        let mut sys = TestSysCall { prints: vec![] };
+        let mut vm = VM::new( vec![ Instruction::ConsNumber(7)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::ConsNumber(11)
+                                  , Instruction::MoveReturnPointerToStack(StackOffset(0))
+                                  , Instruction::Print(StackOffset(0))
+                                  , Instruction::Exit
+                                  ]
+                            , InstructionAddress(0));
+
+        vm.run(&mut sys);
+        assert_eq!( sys.prints.len(), 1 );
+        assert_eq!( sys.prints[0], "11" );
+    }
+
+    #[test]
+    fn should_move_stack() {
+        let mut sys = TestSysCall { prints: vec![] };
+        let mut vm = VM::new( vec![ Instruction::ConsNumber(7)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::ConsNumber(11)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Move { src: StackOffset(1), dest: StackOffset(0) }
+                                  , Instruction::Print(StackOffset(0))
+                                  , Instruction::Exit
+                                  ]
+                            , InstructionAddress(0));
+
+        vm.run(&mut sys);
+        assert_eq!( sys.prints.len(), 1 );
+        assert_eq!( sys.prints[0], "11" );
+    }
+
+    #[test]
+    fn should_branch() {
+        let mut sys = TestSysCall { prints: vec![] };
+        let mut vm = VM::new( vec![ Instruction::ConsNumber(10)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::ConsNumber(1)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::ConsNumber(0)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::ConsBool(false)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Substract(StackOffset(0), StackOffset(1))
+                                  , Instruction::MoveReturnPointerToStack(StackOffset(0))
+                                  , Instruction::Print(StackOffset(0))
+                                  , Instruction::LessThan(StackOffset(0), StackOffset(2))
+                                  , Instruction::MoveReturnPointerToStack(StackOffset(3))
+                                  , Instruction::MoveReturnPointerToStack(StackOffset(3))
+                                  , Instruction::BranchFalse(StackOffset(3), InstructionAddress(8))
+                                  , Instruction::Exit
+                                  ]
+                            , InstructionAddress(0));
+
+        vm.run(&mut sys);
+        assert_eq!( sys.prints.len(), 11 );
+        assert_eq!( sys.prints.iter().map(|x| x.to_string()).collect::<String>(), "9876543210-1" );
     }
 }
