@@ -74,6 +74,5 @@ fn main() {
 
     vm.run(&mut sys_calls);
 
-    //execution::vm::run(ir);
 
 }

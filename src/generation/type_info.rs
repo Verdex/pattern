@@ -2,60 +2,92 @@
 use std::collections::HashMap;
 
 use crate::ast;
-use crate::ir;
 
-use super::data::StaticError;
+use super::data::{ StaticError
+                 , ConsTag
+                 , ConsInfo
+                 , RowType
+                 , ConcreteType
+                 , Type
+                 };
 
-pub fn ast_to_ir_type(t : ast::Type) -> ir::Type {
+
+pub fn ast_to_ir_type(t : ast::Type) -> Type {
 
     use ast::Type as a;
-    use ir::Type as i;
 
-    fn m(ts : Vec<ast::Type>) -> Vec<ir::Type> {
+    fn m(ts : Vec<ast::Type>) -> Vec<super::data::Type> {
         ts.into_iter().map(ast_to_ir_type).collect()
     }
 
-    let array = ir::ConcreteType("Array".to_string());
+    let array = ConcreteType("Array".to_string());
 
     match t {
-        a::Generic(name) => i::Generic(name),
-        a::Concrete(name) => i::Concrete(ir::ConcreteType(name)),
-        a::Array(t) => i::Index { name: array.clone(), params: vec![ast_to_ir_type(*t)] },
-        a::Fun { input, output } => i::Fun { input: m(input), output: Box::new(ast_to_ir_type(*output)) },
-        a::Index { name, params } => i::Index { name: ir::ConcreteType(name), params: m(params) },
+        //ast::Type::Generic(name) => super::data::Type::Generic(name),
+        //ast::Type::Concrete(name) => super::data::Type::Concrete(ConcreteType(name)),
+        //ast::Type::Array(t) => super::data::Type::Index { name: array.clone(), params: vec![ast_to_ir_type(*t)] },
+        //ast::Type::Fun { input, output } => super::data::Type::Fun { input: m(input), output: Box::new(ast_to_ir_type(*output)) },
+        //ast::Type::Index { name, params } => super::data::Type::Index { name: ConcreteType(name), params: m(params) },
+        _ => panic!("!"),
     }
+
+    /*match t {
+        ast::Type::Generic(name) => super::data::Type::Generic(name),
+        ast::Type::Concrete(name) => super::data::Type::Concrete(ConcreteType(name)),
+        ast::Type::Array(t) => super::data::Type::Index { name: array.clone(), params: vec![ast_to_ir_type(*t)] },
+        ast::Type::Fun { input, output } => super::data::Type::Fun { input: m(input), output: Box::new(ast_to_ir_type(*output)) },
+        ast::Type::Index { name, params } => super::data::Type::Index { name: ConcreteType(name), params: m(params) },
+    }*/
 }
+/*pub fn ast_to_ir_type(t : ast::Type) -> Type {
+
+    use ast::Type as a;
+
+    fn m(ts : Vec<ast::Type>) -> Vec<Type> {
+        ts.into_iter().map(ast_to_ir_type).collect()
+    }
+
+    let array = ConcreteType("Array".to_string());
+
+    match t {
+        a::Generic(name) => Type::Generic(name),
+        a::Concrete(name) => Type::Concrete(ConcreteType(name)),
+        a::Array(t) => Type::Index { name: array.clone(), params: vec![ast_to_ir_type(*t)] },
+        a::Fun { input, output } => Type::Fun { input: m(input), output: Box::new(ast_to_ir_type(*output)) },
+        a::Index { name, params } => Type::Index { name: ConcreteType(name), params: m(params) },
+    }
+}*/
 
 pub fn determine_type_info( data_defs : Vec<ast::Ast> ) 
-    -> Result<( HashMap<ir::ConsTag, ir::ConcreteType>
-       , HashMap<ir::ConcreteType, Vec<ir::ConsInfo>> ), StaticError> {
+    -> Result<( HashMap<ConsTag, ConcreteType>
+       , HashMap<ConcreteType, Vec<ConsInfo>> ), StaticError> {
 
     let mut type_lookup = HashMap::new();
     let mut cons_lookup = HashMap::new();
 
     for data_def in data_defs {
         let (concrete_type, cons_defs) = match data_def { 
-            ast::Ast::DataDef { name, cons_defs } => (ir::ConcreteType(name), cons_defs),
+            ast::Ast::DataDef { name, cons_defs } => (ConcreteType(name), cons_defs),
             _ => panic!( "Encountered non DataDef variant"),
         };
 
         if cons_lookup.contains_key(&concrete_type) {
-            let ir::ConcreteType(ct) = concrete_type;
+            let ConcreteType(ct) = concrete_type;
             return Err(StaticError::Fatal(format!("Encountered duplicate type name {ct}")));
         }
 
-        let cons_infos : Vec<ir::ConsInfo> 
+        let cons_infos : Vec<ConsInfo> 
             = cons_defs.into_iter()
-                       .map(|c| ir::ConsInfo{ tag: ir::ConsTag(c.name)
-                                            , ts: c.params.into_iter().map(ast_to_ir_type).collect()
-                                            } ).collect();
+                       .map(|c| ConsInfo{ tag: ConsTag(c.name)
+                                        , ts: c.params.into_iter().map(ast_to_ir_type).collect()
+                                        } ).collect();
 
 
         cons_lookup.insert(concrete_type.clone(), cons_infos.clone());
 
         for info in cons_infos {
             if type_lookup.contains_key(&info.tag) {
-                let ir::ConsTag(tag) = info.tag;
+                let ConsTag(tag) = info.tag;
                 return Err(StaticError::Fatal(format!("Encountered duplicate constructor name {tag}")));
             }
 

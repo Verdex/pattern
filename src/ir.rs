@@ -8,10 +8,8 @@ pub struct Ir {
 
 #[derive(Debug)]
 pub enum Statement {
-    Assign { name : Symbol, expr : Box<Expr> },
-    BranchFalse { target: Symbol, dest : Symbol },
-    Label(Symbol),
-    Goto(Symbol),
+    Assign { name : Symbol, expr : Expr },
+    If { target: Symbol, statements : Vec<Statement> },
     Return(Symbol),
 }
 
@@ -32,31 +30,3 @@ pub enum Expr {
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Symbol(pub String);
-
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub struct ConsTag(pub String);
-
-#[derive(Debug, Clone)]
-pub struct ConsInfo { 
-    pub tag : ConsTag,
-    pub ts : Vec<Type>,
-}
-
-#[derive(Debug, Clone)] 
-pub struct RowType { 
-    pub name : String,
-    pub t : Type,
- }
-
- #[derive(Debug, PartialEq, Eq, Hash, Clone)]
- pub struct ConcreteType(pub String);
-
-#[derive(Debug, Clone)]
-pub enum Type {
-    Infer, // TODO can this be removed?
-    Generic(String),
-    Concrete(ConcreteType),
-    Fun { input : Vec<Type>, output : Box<Type> },
-    Index { name : ConcreteType, params : Vec<Type> },
-    Anon(Vec<RowType>),
-}
