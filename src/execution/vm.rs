@@ -465,4 +465,61 @@ mod test {
         assert_eq!( sys.prints.len(), 1 );
         assert_eq!( sys.prints[0], "true" );
     }
+
+    #[test]
+    fn should_add() {
+        let mut sys = TestSysCall { prints: vec![] };
+        let mut vm = VM::new( vec![ Instruction::ConsNumber(7)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::ConsNumber(11)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Addition(StackOffset(0), StackOffset(1))
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Print(StackOffset(2))
+                                  , Instruction::Exit
+                                  ]
+                            , InstructionAddress(0));
+
+        vm.run(&mut sys);
+        assert_eq!( sys.prints.len(), 1 );
+        assert_eq!( sys.prints[0], "18" );
+    }
+
+    #[test]
+    fn should_sub() {
+        let mut sys = TestSysCall { prints: vec![] };
+        let mut vm = VM::new( vec![ Instruction::ConsNumber(7)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::ConsNumber(11)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Substract(StackOffset(0), StackOffset(1))
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Print(StackOffset(2))
+                                  , Instruction::Exit
+                                  ]
+                            , InstructionAddress(0));
+
+        vm.run(&mut sys);
+        assert_eq!( sys.prints.len(), 1 );
+        assert_eq!( sys.prints[0], "-4" );
+    }
+
+    #[test]
+    fn should_branch() {
+        /*let mut sys = TestSysCall { prints: vec![] };
+        let mut vm = VM::new( vec![ Instruction::ConsNumber(7)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::ConsNumber(11)
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Substract(StackOffset(0), StackOffset(1))
+                                  , Instruction::PushReturnPointerToStack
+                                  , Instruction::Print(StackOffset(2))
+                                  , Instruction::Exit
+                                  ]
+                            , InstructionAddress(0));
+
+        vm.run(&mut sys);
+        assert_eq!( sys.prints.len(), 1 );
+        assert_eq!( sys.prints[0], "-4" );*/
+    }
 }
