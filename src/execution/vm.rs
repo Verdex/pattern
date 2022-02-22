@@ -199,8 +199,10 @@ impl VM {
                     let b_r = get_stack(&self.current_frame.stack, *offset_b);
                     let b = get_heap(&self.heap, b_r);
 
+                    let result = b == a;
+
                     let address = HeapAddress(self.heap.len());
-                    self.heap.push(Data::Bool(a == b));
+                    self.heap.push(Data::Bool(result));
                     self.return_pointer = address;
                 },
                 Instruction::ConsBool(b) => {
