@@ -14,8 +14,6 @@ use super::data::{ StaticError
 
 pub fn ast_to_ir_type(t : ast::Type) -> Type {
 
-    use ast::Type as a;
-
     fn m(ts : Vec<ast::Type>) -> Vec<super::data::Type> {
         ts.into_iter().map(ast_to_ir_type).collect()
     }
