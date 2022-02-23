@@ -25,7 +25,7 @@ pub enum Expr {
     Number(i64),
     Bool(bool),
     Variable(Symbol),
-    Structure { cons_tag : ConsTag, slots : Vec<Symbol> },
+    Constructor { cons_tag : ConsTag, slots_assigns : Vec<Symbol> },
     SlotAccess { data : Symbol, slot : SlotAccessType }, 
     FunCall { name : Symbol, params : Vec<Symbol> },
 }

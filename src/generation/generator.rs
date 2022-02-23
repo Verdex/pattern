@@ -4,7 +4,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::ast::Ast;
 use crate::ir::{Ir, Symbol};
 
-use super::data::StaticError;
+use super::data::{ StaticError, ConsTag };
 use super::type_info;
 
 static SYM_GEN_COUNT : AtomicUsize = AtomicUsize::new(0);
@@ -14,6 +14,12 @@ fn sym_gen(base : &str) -> Symbol {
     let post_fix = SYM_GEN_COUNT.fetch_add(1, Ordering::Relaxed);
 
     Symbol(format!("sym_gen_{base}_{post_fix}"))
+}
+
+fn cons_gen(base : &str) -> ConsTag {
+    let post_fix = SYM_GEN_COUNT.fetch_add(1, Ordering::Relaxed);
+
+    ConsTag(format!("cons_gen_{base}_{post_fix}"))
 }
 
 pub fn generate( asts : Vec<Ast> ) -> Result<Vec<Ir>, StaticError> {
