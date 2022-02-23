@@ -2,9 +2,9 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use crate::ast::Ast;
-use crate::ir::{Ir, Symbol};
+use crate::ir::{Ir, Symbol, ConsTag};
 
-use super::data::{ StaticError, ConsTag };
+use super::data::StaticError;
 use super::type_info;
 
 static SYM_GEN_COUNT : AtomicUsize = AtomicUsize::new(0);

@@ -1,11 +1,10 @@
 
+use crate::ir::ConsTag;
+
 #[derive(Debug)]
 pub enum StaticError {
     Fatal(String),
 }
-
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub struct ConsTag(pub String);
 
 #[derive(Debug, Clone)]
 pub struct ConsInfo { 

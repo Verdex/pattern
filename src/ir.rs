@@ -25,10 +25,16 @@ pub enum Expr {
     Number(i64),
     Bool(bool),
     Variable(Symbol),
-    // TODO Constructor { cons_tag : ConsTag, slots_assigns : Vec<Symbol> },
+    Array(Vec<Expr>),
+    Index { target : Symbol, index : usize },
+    Constructor { cons_tag : ConsTag, slots_assigns : Vec<Expr> },
+    Environment(Vec<Symbol>),
     SlotAccess { data : Symbol, slot : SlotAccessType }, 
     FunCall { name : Symbol, params : Vec<Symbol> },
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Symbol(pub String);
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+pub struct ConsTag(pub String);

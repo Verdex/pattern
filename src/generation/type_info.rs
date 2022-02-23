@@ -3,8 +3,9 @@ use std::collections::HashMap;
 
 use crate::ast;
 
+use crate::ir::ConsTag;
+
 use super::data::{ StaticError
-                 , ConsTag
                  , ConsInfo
                  , RowType
                  , ConcreteType
