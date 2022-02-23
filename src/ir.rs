@@ -10,6 +10,7 @@ pub struct Ir {
 pub enum Statement {
     Assign { name : Symbol, expr : Expr },
     If { target: Symbol, statements : Vec<Statement> },
+    While { target : Symbol, statements : Vec<Statement> },
     Return(Symbol),
 }
 
@@ -24,6 +25,7 @@ pub enum Expr {
     Number(i64),
     Bool(bool),
     Variable(Symbol),
+    Structure { cons_tag : ConsTag, slots : Vec<Symbol> },
     SlotAccess { data : Symbol, slot : SlotAccessType }, 
     FunCall { name : Symbol, params : Vec<Symbol> },
 }
