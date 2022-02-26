@@ -78,22 +78,37 @@ fn fun_to_ir( t : &mut T, fun : Ast ) -> Result<Ir, StaticError> {
         local_sym.insert(sym, t);
     }
 
-    expr_to_ir( t, &mut local_sym, expr );
+    expr_to_statements( t, &mut local_sym, expr );
 
     Err(StaticError::Fatal("blarg".to_string()))
 }
 
-fn expr_to_ir( t : &T, local_sym : &mut HashMap<Symbol, Type>, expr : crate::ast::Expr ) -> Result<Vec<Statement>, StaticError> {
+fn expr_to_statements( t : &T, local_sym : &mut HashMap<Symbol, Type>, expr : crate::ast::Expr ) -> Result<Vec<Statement>, StaticError> {
 
     use crate::ast::Expr as E;
 
-    /*match expr {
+    match expr {
+        E::Number(n) => {
+            let name = gen_sym("anon_num");
 
-        E::Number(n) => ,
+            Ok( vec![ Statement::Assign { name: name.clone(), expr: Expr::Number(n) }
+                    ,  Statement::Return(name)
+                    ] )
+        },
+        E::Bool(b) => {
+            let name = gen_sym("anon_bool");
 
-    }*/
+            Ok( vec![ Statement::Assign { name: name.clone(), expr: Expr::Bool(b) }
+                    ,  Statement::Return(name)
+                    ] )
+        },
+        E::Cons { name, params } => {
+            // TODO:  The params here might correspond to a symbol which was gen_sym-ed up in local_sym
 
-    Err(StaticError::Fatal("blarg".to_string()))
+            Err(StaticError::Fatal("blarg".to_string()))
+        },
+        _ => panic!("TODO")
+    }
 }
 
 #[cfg(test)]
