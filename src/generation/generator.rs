@@ -22,14 +22,13 @@ use super::type_info;
 
 static SYM_GEN_COUNT : AtomicUsize = AtomicUsize::new(0);
 
-// TODO every symbol from the ast needs to go through this
-fn gen_sym(base : &str) -> Symbol {
+fn anon_sym(base : &str) -> Symbol {
     let post_fix = SYM_GEN_COUNT.fetch_add(1, Ordering::Relaxed);
 
     Symbol(format!("sym_gen_{base}_{post_fix}"))
 }
 
-fn gen_tag(base : &str) -> ConsTag {
+fn anon_tag(base : &str) -> ConsTag {
     let post_fix = SYM_GEN_COUNT.fetch_add(1, Ordering::Relaxed);
 
     ConsTag(format!("cons_gen_{base}_{post_fix}"))
