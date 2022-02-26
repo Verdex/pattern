@@ -64,53 +64,6 @@ pub fn generate( asts : Vec<Ast> ) -> Result<Vec<Ir>, StaticError> {
     Ok(vec![])
 }
 
-fn fun_to_ir( t : &mut T, fun : Ast ) -> Result<Ir, StaticError> {
-    let (name, params, return_type, expr) = match fun {
-        Ast::FunDef { name, params, return_type, expr } => (name, params, return_type, expr),
-        _ => panic!("fun_to_ir encountered DataDef"),
-    };
-
-    let mut local_sym : HashMap<Symbol, Type> = HashMap::new();
-
-    for param in params {
-        let sym = gen_sym(&param.name);
-        let t = type_info::ast_to_ir_type(param.t.expect("function params must have type info"));
-        local_sym.insert(sym, t);
-    }
-
-    expr_to_statements( t, &mut local_sym, expr );
-
-    Err(StaticError::Fatal("blarg".to_string()))
-}
-
-fn expr_to_statements( t : &T, local_sym : &mut HashMap<Symbol, Type>, expr : crate::ast::Expr ) -> Result<Vec<Statement>, StaticError> {
-
-    use crate::ast::Expr as E;
-
-    match expr {
-        E::Number(n) => {
-            let name = gen_sym("anon_num");
-
-            Ok( vec![ Statement::Assign { name: name.clone(), expr: Expr::Number(n) }
-                    ,  Statement::Return(name)
-                    ] )
-        },
-        E::Bool(b) => {
-            let name = gen_sym("anon_bool");
-
-            Ok( vec![ Statement::Assign { name: name.clone(), expr: Expr::Bool(b) }
-                    ,  Statement::Return(name)
-                    ] )
-        },
-        E::Cons { name, params } => {
-            // TODO:  The params here might correspond to a symbol which was gen_sym-ed up in local_sym
-
-            Err(StaticError::Fatal("blarg".to_string()))
-        },
-        _ => panic!("TODO")
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
