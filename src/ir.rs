@@ -32,14 +32,13 @@ pub enum Expr {
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub enum Name {
-    User,
-    System,
-    Anon,
+pub enum Symbol {
+    User(String),
+    Anon(String),
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub struct Symbol(pub String, pub Name);
-
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub struct ConsTag(pub String, pub Name);
+pub enum ConsTag {
+    User(String),
+    Anon(String),
+}

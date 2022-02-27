@@ -25,13 +25,13 @@ static SYM_GEN_COUNT : AtomicUsize = AtomicUsize::new(0);
 fn anon_sym(base : &str) -> Symbol {
     let post_fix = SYM_GEN_COUNT.fetch_add(1, Ordering::Relaxed);
 
-    Symbol(format!("sym_gen_{base}_{post_fix}"))
+    Symbol::Anon(format!("sym_gen_{base}_{post_fix}"))
 }
 
 fn anon_tag(base : &str) -> ConsTag {
     let post_fix = SYM_GEN_COUNT.fetch_add(1, Ordering::Relaxed);
 
-    ConsTag(format!("cons_gen_{base}_{post_fix}"))
+    ConsTag::Anon(format!("cons_gen_{base}_{post_fix}"))
 }
 
 
@@ -67,12 +67,4 @@ pub fn generate( asts : Vec<Ast> ) -> Result<Vec<Ir>, StaticError> {
 mod test {
     use super::*;
 
-    #[test]
-    fn should_generate_symbol() {
-        let first = sym_gen("x");
-        let second = sym_gen("other");
-
-        assert_eq!( first, Symbol("sym_gen_x_0".to_string()));
-        assert_eq!( second, Symbol("sym_gen_other_1".to_string()));
-    }
 }

@@ -50,7 +50,7 @@ pub fn determine_type_info( data_defs : Vec<ast::Ast> )
 
         let cons_infos : Vec<ConsInfo> 
             = cons_defs.into_iter()
-                       .map(|c| ConsInfo{ tag: ConsTag(c.name)
+                       .map(|c| ConsInfo{ tag: ConsTag::User(c.name)
                                         , ts: c.params.into_iter().map(ast_to_ir_type).collect()
                                         } ).collect();
 
@@ -59,7 +59,10 @@ pub fn determine_type_info( data_defs : Vec<ast::Ast> )
 
         for info in cons_infos {
             if type_lookup.contains_key(&info.tag) {
-                let ConsTag(tag) = info.tag;
+                let tag = match info.tag {
+                    ConsTag::User(t) => t,
+                    _ => panic!("determine_type_info all cons tags should be User tags at this point"),
+                };
                 return Err(StaticError::Fatal(format!("Encountered duplicate constructor name {tag}")));
             }
 
