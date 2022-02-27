@@ -13,20 +13,20 @@ use super::data::{ StaticError
                  };
 
 
-pub fn ast_to_ir_type(t : ast::Type) -> Type {
+pub fn ast_to_ir_type(t : &ast::Type) -> Type {
 
-    fn m(ts : Vec<ast::Type>) -> Vec<super::data::Type> {
-        ts.into_iter().map(ast_to_ir_type).collect()
+    fn m(ts : &Vec<ast::Type>) -> Vec<super::data::Type> {
+        ts.iter().map(ast_to_ir_type).collect()
     }
 
     let array = ConcreteType("Array".to_string());
 
     match t {
-        ast::Type::Generic(name) => super::data::Type::Generic(name),
-        ast::Type::Concrete(name) => super::data::Type::Concrete(ConcreteType(name)),
-        ast::Type::Array(t) => super::data::Type::Index { name: array.clone(), params: vec![ast_to_ir_type(*t)] },
-        ast::Type::Fun { input, output } => super::data::Type::Fun { input: m(input), output: Box::new(ast_to_ir_type(*output)) },
-        ast::Type::Index { name, params } => super::data::Type::Index { name: ConcreteType(name), params: m(params) },
+        ast::Type::Generic(name) => super::data::Type::Generic(name.to_string()),
+        ast::Type::Concrete(name) => super::data::Type::Concrete(ConcreteType(name.to_string())),
+        ast::Type::Array(t) => super::data::Type::Index { name: array.clone(), params: vec![ast_to_ir_type(t)] },
+        ast::Type::Fun { input, output } => super::data::Type::Fun { input: m(input), output: Box::new(ast_to_ir_type(output)) },
+        ast::Type::Index { name, params } => super::data::Type::Index { name: ConcreteType(name.to_string()), params: m(params) },
     }
 }
 
@@ -51,7 +51,7 @@ pub fn determine_type_info( data_defs : Vec<ast::Ast> )
         let cons_infos : Vec<ConsInfo> 
             = cons_defs.into_iter()
                        .map(|c| ConsInfo{ tag: ConsTag::User(c.name)
-                                        , ts: c.params.into_iter().map(ast_to_ir_type).collect()
+                                        , ts: c.params.iter().map(ast_to_ir_type).collect()
                                         } ).collect();
 
 
