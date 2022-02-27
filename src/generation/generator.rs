@@ -35,12 +35,6 @@ fn anon_tag(base : &str) -> ConsTag {
 }
 
 
-struct T {
-    tag_to_type : HashMap<ConsTag, ConcreteType>,
-    type_to_info : HashMap<ConcreteType, Vec<ConsInfo>>,
-    sym_to_type : HashMap<Symbol, Type>,
-}
-
 
 pub fn generate( asts : Vec<Ast> ) -> Result<Vec<Ir>, StaticError> {
 
@@ -57,11 +51,33 @@ pub fn generate( asts : Vec<Ast> ) -> Result<Vec<Ir>, StaticError> {
 
     let (tag_to_type, type_to_info) = type_info::determine_type_info(datas)?;
 
-    let mut t = T { tag_to_type, type_to_info, sym_to_type: HashMap::new() };
-
-
     Ok(vec![])
 }
+
+fn fun_types(funs : &Vec<Ast>) -> Result<HashMap<Symbol, Type>, StaticError> {
+    let mut m = HashMap::new();
+    for fun in funs {
+        let (name, params, return_type) = match fun {
+            Ast::FunDef { name, params, return_type, .. } => (Symbol::User(name.to_string()), params, return_type),
+            _ => panic!("fun_types should not have any data defs"),
+        }; 
+        if m.contains_key(&name) {
+            let x = match name {
+                Symbol::User(n) => n,
+                _ => panic!("fun_types should only have user symbols at this point"),
+            };
+            return Err(StaticError::Fatal(format!("Encountered already defined function {x}")));
+        }
+        let input = params.iter()
+                          .map(|p| p.t.as_ref().expect("FunDef must have type on each param"))
+                          .map(type_info::ast_to_ir_type)
+                          .collect();
+
+        m.insert(name, Type::Fun { input, output: Box::new(type_info::ast_to_ir_type(return_type.clone()))});
+    }
+    Ok(m)
+}
+
 
 #[cfg(test)]
 mod test {
